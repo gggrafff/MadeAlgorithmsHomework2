@@ -42,7 +42,6 @@
  * Ответ max(dp[i] | i=0..N)
  */
 
-
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -345,7 +344,7 @@ int main(int argc, char *argv[]) {
         std::cin >> sequence[i];
     }
 
-    auto subsequence = find_highest_increasing_subsequence(sequence);
+    const auto subsequence = find_highest_increasing_subsequence(sequence);
 
     // Вывод результата
     std::cout << subsequence.size() << std::endl;
