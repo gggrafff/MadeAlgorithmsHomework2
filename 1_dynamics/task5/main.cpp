@@ -53,23 +53,174 @@
  * 2
  */
 
- /*
-  * Что храним? dp[i][j] - суммарная стоимость обедов по истечении i-го дня и при наличии на руках j купонов
-  * База dp[0][0] = prices[0] и dp[0][1] = inf, если prices[0] < threshold, иначе: dp[0][0] = inf и dp[0][1] = prices[0]
-  * Переход dp[i][j] = min{ dp[i-1][j] + prices[i](если prices[i]<threshold), dp[i-1][j+1], dp[i-1][j-1] + prices[i] (если prices[i]>=threshold) }
-  * Порядок по возрастанию j, по возрастанию i
-  * Ответ min{ dp[N][j] }
-  */
+/*
+ * Что храним? dp[i][j] - суммарная стоимость обедов по истечении i-го дня и при наличии на руках j купонов
+ * База dp[0][0] = prices[0] и dp[0][1] = inf, если prices[0] < threshold, иначе: dp[0][0] = inf и dp[0][1] = prices[0]
+ * Переход dp[i][j] = min{ dp[i-1][j] + prices[i](если prices[i]<threshold), dp[i-1][j+1], dp[i-1][j-1] + prices[i] (если prices[i]>=threshold) }
+ * Порядок по возрастанию j, по возрастанию i
+ * Ответ min{ dp[N][j] }, если минимумов несколько, то максимизируем по j
+ */
 
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <limits>
+#include <cassert>
 
+struct Strategy {
+    uint64_t cost{0};
+    uint64_t spend_coupons{0};
+    uint64_t rest_coupons{0};
+    std::vector<size_t> days_for_free;
+};
+
+using Position = std::pair<size_t, size_t>;
+
+Strategy find_economical_strategy(const std::vector<uint64_t> &prices) {
+    std::vector<std::vector<uint64_t>> dp(prices.size() + 1, std::vector<uint64_t>(prices.size() + 2,
+                                                                                   std::numeric_limits<uint32_t>::max()));
+    std::vector<std::vector<Position>> parents(prices.size(), std::vector<Position>(prices.size(), {0, 0}));
+    const uint64_t threshold = 100;
+    if (prices[0] <= threshold) {
+        dp[1][1] = prices[0];
+    } else {
+        dp[1][2] = prices[0];
+    }
+    for (size_t i = 2; i < dp.size(); ++i) {
+        for (size_t j = 1; j < dp.front().size() - 1; ++j) {
+            if (prices[i - 1] <= threshold) {
+                if (dp[i - 1][j] + prices[i - 1] < dp[i - 1][j + 1]) {
+                    dp[i][j] = dp[i - 1][j] + prices[i - 1];
+                    parents[i - 1][j - 1] = {i - 2, j - 1};
+                } else {
+                    dp[i][j] = dp[i - 1][j + 1];
+                    parents[i - 1][j - 1] = {i - 2, j};
+                }
+                //dp[i][j] = std::min(dp[i - 1][j] + prices[i-1], dp[i - 1][j + 1]);
+            } else {
+                if (dp[i - 1][j - 1] + prices[i - 1] < dp[i - 1][j + 1]) {
+                    dp[i][j] = dp[i - 1][j - 1] + prices[i - 1];
+                    parents[i - 1][j - 1] = {i - 2, j - 2};
+                } else {
+                    dp[i][j] = dp[i - 1][j + 1];
+                    parents[i - 1][j - 1] = {i - 2, j};
+                }
+                //dp[i][j] = std::min(dp[i - 1][j - 1] + prices[i-1], dp[i - 1][j + 1]);
+            }
+        }
+    }
+    auto min_cost = std::min_element(dp.back().rbegin(), dp.back().rend());
+    Strategy strategy;
+    strategy.cost = *min_cost;
+    strategy.rest_coupons = dp.back().size() - std::distance(dp.back().rbegin(), min_cost) - 2;
+    Position current_position{prices.size() - 1, strategy.rest_coupons};
+    if (current_position.second >= parents.size()) {
+        current_position.second = parents.size() - 1;
+    }
+    while (parents[current_position.first][current_position.second] != current_position) {
+        if (current_position.second < parents[current_position.first][current_position.second].second) {
+            strategy.days_for_free.push_back(current_position.first + 1);
+        }
+        current_position = parents[current_position.first][current_position.second];
+    }
+    std::sort(strategy.days_for_free.begin(), strategy.days_for_free.end());
+    strategy.spend_coupons = strategy.days_for_free.size();
+    return strategy;
+}
+
+void test_from_task_1() {
+    auto strategy = find_economical_strategy({110, 40, 120, 110, 60});
+    assert(strategy.cost == 260);
+    assert(strategy.rest_coupons == 0);
+    assert(strategy.spend_coupons == 2);
+    assert(strategy.days_for_free == std::vector<size_t>({3, 5}));
+}
+
+void test_from_task_2() {
+    auto strategy = find_economical_strategy({110, 110, 110});
+    assert(strategy.cost == 220);
+    assert(strategy.rest_coupons == 1);
+    assert(strategy.spend_coupons == 1);
+    assert(strategy.days_for_free == std::vector<size_t>({2}) || strategy.days_for_free == std::vector<size_t>({3}));
+}
+
+void test_all_cheap() {
+    auto strategy = find_economical_strategy({10, 40, 30, 90, 60});
+    assert(strategy.cost == 230);
+    assert(strategy.rest_coupons == 0);
+    assert(strategy.spend_coupons == 0);
+    assert(strategy.days_for_free.empty());
+}
+
+void test_all_expensive() {
+    auto strategy = find_economical_strategy({110, 140, 130, 190, 160});
+    assert(strategy.cost == 380);
+    assert(strategy.rest_coupons == 1);
+    assert(strategy.spend_coupons == 2);
+    assert(strategy.days_for_free == std::vector<size_t>({4, 5}));
+}
+
+void test_zigzag_with_offset_1() {
+    auto strategy = find_economical_strategy({110, 40, 30, 190, 60, 50, 150});
+    assert(strategy.cost == 420);
+    assert(strategy.rest_coupons == 0);
+    assert(strategy.spend_coupons == 2);
+    assert(strategy.days_for_free == std::vector<size_t>({5, 7}));
+}
+
+void test_zigzag_with_offset_2() {
+    auto strategy = find_economical_strategy({110, 40, 30, 190, 60, 50, 150, 30});
+    assert(strategy.cost == 440);
+    assert(strategy.rest_coupons == 0);
+    assert(strategy.spend_coupons == 2);
+    assert(strategy.days_for_free == std::vector<size_t>({4, 8}));
+}
+
+void test_one_cheap_day() {
+    auto strategy = find_economical_strategy({30});
+    assert(strategy.cost == 30);
+    assert(strategy.rest_coupons == 0);
+    assert(strategy.spend_coupons == 0);
+    assert(strategy.days_for_free.empty());
+}
+
+void test_one_expensive_day() {
+    auto strategy = find_economical_strategy({110});
+    assert(strategy.cost == 110);
+    assert(strategy.rest_coupons == 1);
+    assert(strategy.spend_coupons == 0);
+    assert(strategy.days_for_free.empty());
+}
 
 int main(int argc, char *argv[]) {
+    const bool is_test = false;
+    if (is_test) {
+        test_from_task_1();
+        test_from_task_2();
+        test_all_cheap();
+        test_all_expensive();
+        test_zigzag_with_offset_1();
+        test_zigzag_with_offset_2();
+        test_one_cheap_day();
+        test_one_expensive_day();
+        return 0;
+    }
+
     // Чтение входных данных
+    size_t N;
+    std::cin >> N;
+    std::vector<uint64_t> prices(N, 0);
+    for (auto &price : prices) {
+        std::cin >> price;
+    }
+
+    auto strategy = find_economical_strategy(prices);
 
     // Запись результата
-
+    std::cout << strategy.cost << std::endl;
+    std::cout << strategy.rest_coupons << " " << strategy.spend_coupons << std::endl;
+    for (auto &day : strategy.days_for_free) {
+        std::cout << day << std::endl;
+    }
     return 0;
 }
