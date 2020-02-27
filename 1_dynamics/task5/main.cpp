@@ -192,8 +192,16 @@ void test_one_expensive_day() {
     assert(strategy.days_for_free.empty());
 }
 
+void test_empty() {
+	auto strategy = find_economical_strategy({});
+    assert(strategy.cost ==0);
+    assert(strategy.rest_coupons == 0);
+    assert(strategy.spend_coupons == 0);
+    assert(strategy.days_for_free.empty());
+}
+
 int main(int argc, char *argv[]) {
-    const bool is_test = false;
+    const bool is_test = true;
     if (is_test) {
         test_from_task_1();
         test_from_task_2();
@@ -203,6 +211,7 @@ int main(int argc, char *argv[]) {
         test_zigzag_with_offset_2();
         test_one_cheap_day();
         test_one_expensive_day();
+        test_empty();
         return 0;
     }
 
