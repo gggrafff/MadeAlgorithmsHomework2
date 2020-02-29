@@ -67,52 +67,72 @@
 #include <limits>
 #include <cassert>
 
+/**
+ * @brief Структура для хранения результата
+ */
 struct Strategy {
-    uint64_t cost{0};
-    uint64_t spend_coupons{0};
-    uint64_t rest_coupons{0};
-    std::vector<size_t> days_for_free;
+    uint64_t cost{0};  // Суммарная стоимость обедов
+    uint64_t spend_coupons{0};  // Потрачено купонов
+    uint64_t rest_coupons{0};  // Осталось купонов
+    std::vector<size_t> days_for_free;  // Номера дней, в которые нужно пообедать за купоны
 };
 
+/**
+ * @brief Позиция в двумерном массиве
+ */
 using Position = std::pair<size_t, size_t>;
 
+
+/**
+ * @brief Поиск наиболее выгодной стратегии оплаты обедов методом ДП.
+ * @param prices Цены на обеды.
+ * @return Стратегия оплаты обедов.
+ */
 Strategy find_economical_strategy(const std::vector<uint64_t> &prices) {
-    std::vector<std::vector<uint64_t>> dp(prices.size() + 1, std::vector<uint64_t>(prices.size() + 2,
-                                                                                   std::numeric_limits<uint32_t>::max()));
+    if (prices.empty())
+    {
+        return {};
+
+    }
+    std::vector<std::vector<uint64_t>> dp(
+            prices.size() + 1,
+            std::vector<uint64_t>(prices.size() + 2, std::numeric_limits<uint32_t>::max()));  // с каёмкой
     std::vector<std::vector<Position>> parents(prices.size(), std::vector<Position>(prices.size(), {0, 0}));
     const uint64_t threshold = 100;
-    if (prices[0] <= threshold) {
+    if (prices[0] <= threshold) {  // база
         dp[1][1] = prices[0];
     } else {
         dp[1][2] = prices[0];
     }
-    for (size_t i = 2; i < dp.size(); ++i) {
-        for (size_t j = 1; j < dp.front().size() - 1; ++j) {
-            if (prices[i - 1] <= threshold) {
+    for (size_t i = 2; i < dp.size(); ++i) {  // учитываем каёмку и базу
+        for (size_t j = 1; j < dp.front().size() - 1; ++j) {  // учитываем каёмку
+            if (prices[i - 1] <= threshold) {  // не получаем купона
                 if (dp[i - 1][j] + prices[i - 1] < dp[i - 1][j + 1]) {
-                    dp[i][j] = dp[i - 1][j] + prices[i - 1];
-                    parents[i - 1][j - 1] = {i - 2, j - 1};
+                    dp[i][j] = dp[i - 1][j] + prices[i - 1];  // обедаем за деньги
+                    parents[i - 1][j - 1] = {i - 2, j - 1};  // массив родителей нумеруется с 0
                 } else {
-                    dp[i][j] = dp[i - 1][j + 1];
-                    parents[i - 1][j - 1] = {i - 2, j};
+                    dp[i][j] = dp[i - 1][j + 1];  // обедаем за купон
+                    parents[i - 1][j - 1] = {i - 2, j};  // массив родителей нумеруется с 0
                 }
-                //dp[i][j] = std::min(dp[i - 1][j] + prices[i-1], dp[i - 1][j + 1]);
-            } else {
+            } else {  // можем получить купон, если заплатим
                 if (dp[i - 1][j - 1] + prices[i - 1] < dp[i - 1][j + 1]) {
-                    dp[i][j] = dp[i - 1][j - 1] + prices[i - 1];
-                    parents[i - 1][j - 1] = {i - 2, j - 2};
+                    dp[i][j] = dp[i - 1][j - 1] + prices[i - 1];  // обедаем за деньги, получаем купон
+                    parents[i - 1][j - 1] = {i - 2, j - 2};  // массив родителей нумеруется с 0
                 } else {
-                    dp[i][j] = dp[i - 1][j + 1];
-                    parents[i - 1][j - 1] = {i - 2, j};
+                    dp[i][j] = dp[i - 1][j + 1];  // обедаем за купон
+                    parents[i - 1][j - 1] = {i - 2, j};  // массив родителей нумеруется с 0
                 }
-                //dp[i][j] = std::min(dp[i - 1][j - 1] + prices[i-1], dp[i - 1][j + 1]);
             }
         }
     }
+
+    // Заполняем структуру с результатом
     auto min_cost = std::min_element(dp.back().rbegin(), dp.back().rend());
     Strategy strategy;
     strategy.cost = *min_cost;
     strategy.rest_coupons = dp.back().size() - std::distance(dp.back().rbegin(), min_cost) - 2;
+
+    // Поиск дней для бесплатного обеда в массиве родителей
     Position current_position{prices.size() - 1, strategy.rest_coupons};
     if (current_position.second >= parents.size()) {
         current_position.second = parents.size() - 1;
@@ -124,9 +144,13 @@ Strategy find_economical_strategy(const std::vector<uint64_t> &prices) {
         current_position = parents[current_position.first][current_position.second];
     }
     std::sort(strategy.days_for_free.begin(), strategy.days_for_free.end());
+
     strategy.spend_coupons = strategy.days_for_free.size();
+
     return strategy;
 }
+
+// Начало тестов
 
 void test_from_task_1() {
     auto strategy = find_economical_strategy({110, 40, 120, 110, 60});
@@ -200,19 +224,29 @@ void test_empty() {
     assert(strategy.days_for_free.empty());
 }
 
+void run_all_tests()
+{
+    test_from_task_1();
+    test_from_task_2();
+    test_all_cheap();
+    test_all_expensive();
+    test_zigzag_with_offset_1();
+    test_zigzag_with_offset_2();
+    test_one_cheap_day();
+    test_one_expensive_day();
+    test_empty();
+}
+
+// Конец тестов
+
 int main(int argc, char *argv[]) {
-    const bool is_test = true;
-    if (is_test) {
-        test_from_task_1();
-        test_from_task_2();
-        test_all_cheap();
-        test_all_expensive();
-        test_zigzag_with_offset_1();
-        test_zigzag_with_offset_2();
-        test_one_cheap_day();
-        test_one_expensive_day();
-        test_empty();
-        return 0;
+    if (argc > 1)
+    {
+        if(std::string(argv[1]) == "test")  // запуск тестов
+        {
+            run_all_tests();
+            return 0;
+        }
     }
 
     // Чтение входных данных
