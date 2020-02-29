@@ -4,5 +4,6 @@ project(MadeAlgorithmsHomework2)
 set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(1_dynamics)
+add_subdirectory(2_dynamics)
 
-#Cxxdroid-binary: 1_dynamics/task5/task5
+#Cxxdroid-binary: 2_dynamics_advanced/task1/task1
