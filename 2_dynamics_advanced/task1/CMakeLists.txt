@@ -1,1 +1,1 @@
-add_executable(task1 main.cpp)
+add_executable(task2_1 main.cpp)
