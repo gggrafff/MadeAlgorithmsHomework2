@@ -33,7 +33,7 @@
  * База dp[start][0] = 0; 
  * Переход dp[v][mask] = min{ dp[u][mask - 2^u] + length[u][v] } по всем u из mask
  * Порядок по возрастанию mask
- * Ответ min{dp[start][2^n - 1 - 1]}
+ * Ответ min{dp[i][2^n - 1 - 2^i] по всем i} т.к. маршрут не замкнут
  */
 
 #include <iostream>
@@ -42,7 +42,13 @@
 #include <cassert>
 #include <limits>
 
+ /**
+  * @brief Матрица смежности взвешенного неориентированного графа.
+  */
 using Graph = std::vector<std::vector<uint64_t>>;
+/**
+ * @brief Структура для хранения пути. Первый элемент - длина. Второй элемент - маршрут (массив индексов городов).
+ */
 using Path = std::pair<uint64_t, std::vector<size_t>>;
 
 /**
@@ -57,24 +63,25 @@ NumberType getBit(NumberType mask, uint8_t index) {
     return (mask >> index) & 1;
 }
 
+/**
+ * @brief Решение задачи коммивояжёра для взвешенного неориентирвоанного графа методом ДП.
+ * @param graph Граф городов.
+ * @return Кратчайший незамкнутый путь.
+ */
 Path find_shortest_path(const Graph &graph) {
     assert(graph.size() <= 30);
 
-    const size_t N = (static_cast<size_t>(1) << graph.size());
+    const size_t N = (static_cast<size_t>(1) << graph.size());  // количество возможных подмножеств городов
     std::vector<std::vector<uint64_t>> dp(graph.size(), std::vector<uint64_t>(N, std::numeric_limits<uint32_t>::max()));
     std::vector<std::vector<size_t>> parents(graph.size(), std::vector<size_t>(N, 0));
 
     for (size_t start = 0; start < graph.size(); ++start) {
-        dp[start][0] = 0;
+        dp[start][0] = 0;  // база. начать можем с любого города бесплатно.
     }
 
     for (uint32_t mask = 1; mask < N; ++mask) {
         for (size_t v = 0; v < graph.size(); ++v) {
             for (size_t u = 0; u < graph.size(); ++u) {
-                if (u == v)
-                {
-                    continue;
-                }
                 if (getBit(mask, static_cast<uint8_t>(u)) == 1) {
                     const auto length = graph[u][v] + dp[u][mask - (1 << u)];
                     if (length < dp[v][mask]) {
@@ -87,6 +94,8 @@ Path find_shortest_path(const Graph &graph) {
     }
 
     Path path;
+
+    // поиск последнего города в пути и длины маршрута
     auto last_city_index = 0;
     for (auto i = 1; i < dp.size();++i)
     {
@@ -97,6 +106,7 @@ Path find_shortest_path(const Graph &graph) {
     }
     path.first = dp[last_city_index][N-1-(1<<last_city_index)];
 
+    // восстановление маршрута
     auto current_index = last_city_index;
     path.second.push_back(static_cast<size_t>(current_index));
     uint32_t current_mask = static_cast<uint32_t>(N) - 1 - (1 << current_index);
@@ -105,16 +115,19 @@ Path find_shortest_path(const Graph &graph) {
         current_index = parents[current_index][current_mask];
         current_mask -= 1 << current_index;
     }
-    auto control_length = 0;
-    for(auto i = 0; i<path.second.size()-1;++i)
-    {
-        control_length += graph[path.second[i]][path.second[i+1]];
-    }
-    assert(path.first == control_length);
+
     return path;
 }
 
 // Начало тестов
+
+void check_path(const Path& path, const Graph& graph)   {
+  auto control_length = 0;
+  for (auto i = 0; i < path.second.size() - 1; ++i) {
+    control_length += graph[path.second[i]][path.second[i + 1]];
+  }
+  assert(path.first == control_length);
+}
 
 void test_from_task_1() {
     const Graph graph{
@@ -125,6 +138,7 @@ void test_from_task_1() {
             {181, 171, 302, 167, 0},};
     const auto path = find_shortest_path(graph);
     assert(path.first == 666);
+    check_path(path, graph);
 }
 
 void test_one_city() {
@@ -133,30 +147,30 @@ void test_one_city() {
     const auto path = find_shortest_path(graph);
     assert(path.first == 0);
     assert(path.second == std::vector<size_t>{0});
+    check_path(path, graph);
 }
 
-void test_by_saturn_team() {
+void test_by_saturn() {
     const Graph graph{
             {0,   20, 18, 12, 8},
-            {5, 0,   14, 7, 11},
-            {12, 18, 0,   6, 11},
-            {11, 17, 11, 0,   12},
-            {5, 5, 5, 5, 0},};
+            {20, 0,   14, 7, 5},
+            {18, 14, 0,   11, 5},
+            {12, 7, 11, 0,   5},
+            {8, 5, 5, 5, 0},};
     const auto path = find_shortest_path(graph);
-    assert(path.first == 36);
+    assert(path.first == 29);
+    check_path(path, graph);
 }
 
 void run_all_tests() {
     test_from_task_1();
     test_one_city();
-    test_by_saturn_team();
+    test_by_saturn();
 }
 
 // Конец тестов
 
 int main(int argc, char *argv[]) {
-    run_all_tests();
-    return 0;
     if (argc > 1) {
         if (std::string(argv[1]) == "test")  // запуск тестов
         {
