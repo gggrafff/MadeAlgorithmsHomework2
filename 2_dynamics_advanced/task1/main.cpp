@@ -63,8 +63,7 @@ using Graph = std::vector<std::vector<bool>>;
  * @return Значение бита.
  */
 template<typename NumberType>
-NumberType getBit(NumberType mask, uint8_t index)
-{
+NumberType getBit(NumberType mask, uint8_t index) {
     return (mask >> index) & 1;
 }
 
@@ -78,8 +77,7 @@ uint64_t find_highest_matching(const Graph &graph) {
     size_t N = (1U << graph.size());  // количество всех подмножеств
     std::vector<uint64_t> dp(N, 0);
     for (size_t mask = 1; mask < N; ++mask) {
-        for (size_t i = 0; i < graph.size(); ++i)
-        {
+        for (size_t i = 0; i < graph.size(); ++i) {
             if (getBit(mask, static_cast<uint8_t>(i)) == 1) {
                 dp[mask] = dp[mask - (1 << i)];  // mask' = mask - 2^i
                 for (size_t j = 0; j < graph.size(); ++j) {
@@ -97,11 +95,11 @@ uint64_t find_highest_matching(const Graph &graph) {
 
 void test_from_task_1() {
     Graph graph = {
-            {false, true, true, true, true},
-            {true, false, false, false, false},
-            {true, false, false, false, false},
-            {true, false, false, false, false},
-            {true, false, false, false, false},
+            {false, true,  true,  true,  true},
+            {true,  false, false, false, false},
+            {true,  false, false, false, false},
+            {true,  false, false, false, false},
+            {true,  false, false, false, false},
     };
     auto result = find_highest_matching(graph);
     assert(result == 1);
@@ -109,18 +107,17 @@ void test_from_task_1() {
 
 void test_from_task_2() {
     Graph graph = {
-            {false, true, true, true, true},
-            {true, false, false, false, false},
-            {true, false, false, false, true},
-            {true, false, false, false, true},
-            {true, false, true, true, false},
+            {false, true,  true,  true,  true},
+            {true,  false, false, false, false},
+            {true,  false, false, false, true},
+            {true,  false, false, false, true},
+            {true,  false, true,  true,  false},
     };
     auto result = find_highest_matching(graph);
     assert(result == 2);
 }
 
-void run_all_tests()
-{
+void run_all_tests() {
     test_from_task_1();
     test_from_task_2();
 }
@@ -128,9 +125,8 @@ void run_all_tests()
 // Конец тестов
 
 int main(int argc, char *argv[]) {
-    if (argc > 1)
-    {
-        if(std::string(argv[1]) == "test")  // запуск тестов
+    if (argc > 1) {
+        if (std::string(argv[1]) == "test")  // запуск тестов
         {
             run_all_tests();
             return 0;

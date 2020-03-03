@@ -58,6 +58,18 @@
 #include <cassert>
 
 
+/**
+ * @brief Извлечение значения бита из битовой маски.
+ * @tparam NumberType Числовой тип данных, которым представлена битовая маска.
+ * @param mask Битовая маска.
+ * @param index Номер бита.
+ * @return Значение бита.
+ */
+template<typename NumberType>
+NumberType getBit(NumberType mask, uint8_t index) {
+    return (mask >> index) & 1;
+}
+
 // Начало тестов
 
 void test_from_task_1() {

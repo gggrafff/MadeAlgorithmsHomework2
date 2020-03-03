@@ -52,7 +52,7 @@ std::string restore_answer(
         const std::vector<std::vector<size_t>> &dp,
         const std::vector<std::vector<ssize_t>> &separators,
         const std::string &brackets) {
-    assert(j>=i);
+    assert(j >= i);
     if (dp[i][j] == j - i + 1) {  // если все символы плохие
         return "";
     }
@@ -74,8 +74,7 @@ std::string restore_answer(
  * @return Наиболее длинная корректная строка со скобками, полученная из исходной удалением символов.
  */
 std::string find_longest_valid_brackets(const std::string &brackets) {
-    if (brackets.empty())
-    {
+    if (brackets.empty()) {
         return "";
     }
 
@@ -96,7 +95,8 @@ std::string find_longest_valid_brackets(const std::string &brackets) {
         for (size_t i = 0; i <= brackets.size() - length; ++i) {  // итерируемся по левому концу отрезка
             auto j = i + length - 1;  // правый конец отрезка
             assert(j > i);
-            for (size_t k = i; k < j; ++k) {  // ищем такое деление отрезка на подотрезки, которое даст наилучший результат
+            for (size_t k = i;
+                 k < j; ++k) {  // ищем такое деление отрезка на подотрезки, которое даст наилучший результат
                 auto sum = dp[i][k] + dp[k + 1][j];
                 if (sum < dp[i][j]) {
                     dp[i][j] = sum;
@@ -110,8 +110,7 @@ std::string find_longest_valid_brackets(const std::string &brackets) {
                 (brackets[i] == '{' && brackets[j] == '}')) {
                 assert(j > i);
                 if (j > i + 1) {  // если длина подотрезка не нулевая
-                    if (dp[i + 1][j - 1] < dp[i][j])
-                    {
+                    if (dp[i + 1][j - 1] < dp[i][j]) {
                         dp[i][j] = dp[i + 1][j - 1];
                         separators[i][j] = -1;  // помечаем, что случай особый
                     }

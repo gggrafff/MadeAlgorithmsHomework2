@@ -42,9 +42,9 @@
 #include <cassert>
 #include <limits>
 
- /**
-  * @brief Матрица смежности взвешенного неориентированного графа.
-  */
+/**
+ * @brief Матрица смежности взвешенного неориентированного графа.
+ */
 using Graph = std::vector<std::vector<uint64_t>>;
 /**
  * @brief Структура для хранения пути. Первый элемент - длина. Второй элемент - маршрут (массив индексов городов).
@@ -97,14 +97,12 @@ Path find_shortest_path(const Graph &graph) {
 
     // поиск последнего города в пути и длины маршрута
     auto last_city_index = 0;
-    for (auto i = 1; i < dp.size();++i)
-    {
-        if (dp[i][N-1-(1<<i)] < dp[last_city_index][N-1-(1<<last_city_index)])
-        {
+    for (auto i = 1; i < dp.size(); ++i) {
+        if (dp[i][N - 1 - (1 << i)] < dp[last_city_index][N - 1 - (1 << last_city_index)]) {
             last_city_index = i;
         }
     }
-    path.first = dp[last_city_index][N-1-(1<<last_city_index)];
+    path.first = dp[last_city_index][N - 1 - (1 << last_city_index)];
 
     // восстановление маршрута
     auto current_index = last_city_index;
@@ -121,12 +119,12 @@ Path find_shortest_path(const Graph &graph) {
 
 // Начало тестов
 
-void check_path(const Path& path, const Graph& graph)   {
-  auto control_length = 0;
-  for (auto i = 0; i < path.second.size() - 1; ++i) {
-    control_length += graph[path.second[i]][path.second[i + 1]];
-  }
-  assert(path.first == control_length);
+void check_path(const Path &path, const Graph &graph) {
+    auto control_length = 0;
+    for (auto i = 0; i < path.second.size() - 1; ++i) {
+        control_length += graph[path.second[i]][path.second[i + 1]];
+    }
+    assert(path.first == control_length);
 }
 
 void test_from_task_1() {
@@ -152,11 +150,11 @@ void test_one_city() {
 
 void test_by_saturn() {
     const Graph graph{
-            {0,   20, 18, 12, 8},
-            {20, 0,   14, 7, 5},
-            {18, 14, 0,   11, 5},
-            {12, 7, 11, 0,   5},
-            {8, 5, 5, 5, 0},};
+            {0,  20, 18, 12, 8},
+            {20, 0,  14, 7,  5},
+            {18, 14, 0,  11, 5},
+            {12, 7,  11, 0,  5},
+            {8,  5,  5,  5,  0},};
     const auto path = find_shortest_path(graph);
     assert(path.first == 29);
     check_path(path, graph);

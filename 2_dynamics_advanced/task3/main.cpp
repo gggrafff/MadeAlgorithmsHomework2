@@ -61,17 +61,15 @@ void test_from_task_1() {
 
 }
 
-void run_all_tests()
-{
+void run_all_tests() {
     test_from_task_1();
 }
 
 // Конец тестов
 
 int main(int argc, char *argv[]) {
-    if (argc > 1)
-    {
-        if(std::string(argv[1]) == "test")  // запуск тестов
+    if (argc > 1) {
+        if (std::string(argv[1]) == "test")  // запуск тестов
         {
             run_all_tests();
             return 0;
