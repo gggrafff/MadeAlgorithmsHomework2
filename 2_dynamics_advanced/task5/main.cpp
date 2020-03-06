@@ -57,37 +57,56 @@
 #include <algorithm>
 #include <cassert>
 
-
+/**
+ * @brief Двумерный массив, в который считываем состояние доски
+ */
 using Board = std::vector<std::vector<bool>>;
 
+/**
+ * @brief Вычисление количества замощений доски с дырками доминошками 1x2 и 2x1
+ * @param board Описание доски
+ * @return Количество возможных замощений
+ */
 uint64_t count_fillings(const Board &board) {
-    assert(board.size() <= 30);
-    const uint64_t N = (1ULL << board.size());
-    std::vector<std::vector<uint32_t>> dp(board.size() * board.front().size() + 1, std::vector<uint32_t>(N, 0));
-    dp[0][0] = 1;
-    for (size_t x = 0; x < board.size() * board.front().size(); ++x) {
+    assert(board.size() <= 30);  // доска должна быть не очень большой
+
+    // Для удобства вытянем массив, задающий доску
+    std::vector<bool> board_flatted;
+    for (auto j = 0; j < board.front().size(); ++j) {
+        for (auto i = 0; i < board.size(); ++i) {
+            board_flatted.push_back(board[i][j]);
+        }
+    }
+
+    // Для удобства поместим следующие размеры в отдельные константы
+    const uint64_t N = (1ULL << board.size());  // количество возможных торчащих профилей для доски такого размера
+    const size_t columns_count = board.front().size();
+    const size_t rows_count = board.size();
+    const size_t cells_count = columns_count * rows_count;
+    assert(board_flatted.size() == cells_count);
+
+    std::vector<std::vector<uint64_t>> dp(cells_count + 1, std::vector<uint64_t>(N, 0));
+    dp[0][0] = 1;  // база
+    for (size_t x = 0; x < cells_count; ++x) {
         for (uint32_t mask = 0; mask < N; ++mask) {
             if (dp[x][mask] == 0) {
-                continue;
+                continue;  // если ячейка недостижима, для неё не вычисляем возможные замощения
             }
-            if (((mask & 1) == 1) || (board[x % board.size()][x / board.size()])) {  // если клетка занята
+            if (((mask & 1) == 1) || (board_flatted[x])) {  // если клетка занята
                 dp[x + 1][mask >> 1] += dp[x][mask];  // ничего не кладём
             } else {
                 // кладём горизонтальную
-                if ((x + board.size() < board.size() * board.front().size()) &&  // x - не в последнем столбце доски
-                    (!board[(x + board.size()) % board.size()][(x + board.size()) /
-                                                               board.size()])) {  // следующая по горизонтали клетка доступна по условию
-                    const auto mask_hor = (mask >> 1) + (1 << (board.size() - 1));
+                if ((x + rows_count < cells_count) &&  // x - не в последнем столбце доски
+                    (!board_flatted[x + rows_count])) {  // следующая по горизонтали клетка доступна по условию
+                    const auto mask_hor = (mask >> 1) + (1 << (rows_count - 1));
                     dp[x + 1][mask_hor] += dp[x][mask];
                 }
 
                 // кладём вертикальную
-                if (
-                        ((mask & 2) == 0) &&  // следующая клетка не занята
-                        ((x + 1) % board.size() != 0) &&  // x - не в последней строке доски
-                        (x < board.size() * board.front().size() - 1) &&
-                        (!board[(x + 1) % board.size()][(x + 1) /
-                                                        board.size()])) {  // следующая по вертикали клетка доступна по условию
+                if (((mask & 2) == 0) &&  // следующая клетка не занята
+                    ((x + 1) % rows_count != 0) &&  // текущая клетка не в последней строке доски
+                    ((x + 2) <= cells_count) &&  // доминошка не вылазит за пределы доски
+                    (!board_flatted[x + 1])) {  // следующая по вертикали клетка доступна по условию
                     const auto mask_ver = (mask >> 1) + 1;
                     dp[x + 1][mask_ver] += dp[x][mask];
                 }
@@ -96,7 +115,6 @@ uint64_t count_fillings(const Board &board) {
     }
     return dp.back()[0];
 }
-
 
 // Начало тестов
 
@@ -188,7 +206,7 @@ void test_impossible_2() {
     const Board board = {
             {false, false, false},
             {false, false, false},
-            {false, true, false},
+            {false, true,  false},
             {false, false, false},};
     const auto result = count_fillings(board);
     assert(result == 0);
@@ -197,7 +215,7 @@ void test_impossible_2() {
 void test_impossible_3() {
     const Board board = {
             {false, false, false},
-            {true, false, false},
+            {true,  false, false},
             {false, false, true},
             {false, false, true},};
     const auto result = count_fillings(board);
@@ -206,21 +224,23 @@ void test_impossible_3() {
 
 void test_one_solving_1() {
     const Board board = {
-            {false, false, },};
+            {false, false,},};
     const auto result = count_fillings(board);
     assert(result == 1);
 }
 
 void test_one_solving_2() {
     const Board board = {
-            {false, }, {false, } ,};
+            {false,},
+            {false,},};
     const auto result = count_fillings(board);
     assert(result == 1);
 }
 
 void test_one_solving_3() {
     const Board board = {
-            {true, false, false, }, {false, false, true, } ,};
+            {true,  false, false,},
+            {false, false, true,},};
     const auto result = count_fillings(board);
     assert(result == 1);
 }
@@ -232,39 +252,64 @@ void test_big_1() {
 }
 
 void test_last_row_1() {
-	const Board board = {
-		{false, false,  true, false, true, true},
-		{true, false,  false, false, false, false}, };
+    const Board board = {
+            {false, false, true,  false, true,  true},
+            {true,  false, false, false, false, false},};
     const auto result = count_fillings(board);
     assert(result == 1);
 }
 
-void test_by_dm_1()
-{
-	const Board board = {
+void test_last_column() {
+    const Board board = {
             {false, false, true},
             {false, false, true},};
     const auto result = count_fillings(board);
     assert(result == 2);
 }
 
+void test_first_column() {
+    const Board board = {
+            {true, false, false},
+            {true, false, false},};
+    const auto result = count_fillings(board);
+    assert(result == 2);
+}
+
+void test_first_row() {
+    const Board board = {
+            {true,  true,  true},
+            {false, false, false},
+            {false, false, false},};
+    const auto result = count_fillings(board);
+    assert(result == 3);
+}
+
+void test_last_row_2() {
+    const Board board = {
+            {false, false, false},
+            {false, false, false},
+            {true,  true,  true},};
+    const auto result = count_fillings(board);
+    assert(result == 3);
+}
+
 void test_by_al_1() {
     const Board board = {
-            {false, false, false, false, },
-            {false, true, false, false, },
-            {false, false, true, false, },
-            {false, false, false, false, },};
+            {false, false, false, false,},
+            {false, true,  false, false,},
+            {false, false, true,  false,},
+            {false, false, false, false,},};
     const auto result = count_fillings(board);
     assert(result == 0);
 }
 
 void test_by_al_2() {
     const Board board = {
-            {false, false, false, false, false, },
-            {false, true, false, false, false, },
-            {false, false, true, false, false, },
-            {false, false, false, false, false, },
-            {false, false, false, true, false, },};
+            {false, false, false, false, false,},
+            {false, true,  false, false, false,},
+            {false, false, true,  false, false,},
+            {false, false, false, false, false,},
+            {false, false, false, true,  false,},};
     const auto result = count_fillings(board);
     assert(result == 8);
 }
@@ -286,18 +331,19 @@ void run_all_tests() {
     test_one_solving_1();
     test_one_solving_2();;
     test_one_solving_3();
-	test_big_1();
-	test_last_row_1();
-	test_by_dm_1();
-	test_by_al_1();
+    test_big_1();
+    test_last_row_1();
+    test_last_column();
+    test_first_column();
+    test_first_row();
+    test_last_row_2();
+    test_by_al_1();
     test_by_al_2();
 }
 
 // Конец тестов
 
 int main(int argc, char *argv[]) {
-    run_all_tests();
-    return 0;
     if (argc > 1) {
         if (std::string(argv[1]) == "test")  // запуск тестов
         {
