@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task4/main.cpp
+iostream
+-
+vector
+-
+algorithm
+-
+cassert
+-
+limits
+-
+

@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task1",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++    -Wall -std=c++17 -fallow-void-main   -std=gnu++17 -o CMakeFiles/task2_1.dir/main.cpp.o -c /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task1/main.cpp",
+  "file": "/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task1/main.cpp"
+},
+{
+  "directory": "/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task2",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++    -Wall -std=c++17 -fallow-void-main   -std=gnu++17 -o CMakeFiles/task2_2.dir/main.cpp.o -c /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task2/main.cpp",
+  "file": "/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task2/main.cpp"
+},
+{
+  "directory": "/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task3",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++    -Wall -std=c++17 -fallow-void-main   -std=gnu++17 -o CMakeFiles/task2_3.dir/main.cpp.o -c /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task3/main.cpp",
+  "file": "/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task3/main.cpp"
+},
+{
+  "directory": "/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task4",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++    -Wall -std=c++17 -fallow-void-main   -std=gnu++17 -o CMakeFiles/task2_4.dir/main.cpp.o -c /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task4/main.cpp",
+  "file": "/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task4/main.cpp"
+},
+{
+  "directory": "/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task5",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++    -Wall -std=c++17 -fallow-void-main   -std=gnu++17 -o CMakeFiles/task2_5.dir/main.cpp.o -c /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task5/main.cpp",
+  "file": "/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task5/main.cpp"
+},
+{
+  "directory": "/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task6",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++    -Wall -std=c++17 -fallow-void-main   -std=gnu++17 -o CMakeFiles/task2_6.dir/main.cpp.o -c /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task6/main.cpp",
+  "file": "/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/2_dynamics_advanced/task6/main.cpp"
+}
+]
