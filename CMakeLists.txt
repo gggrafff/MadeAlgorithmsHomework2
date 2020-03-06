@@ -7,4 +7,4 @@ add_subdirectory(1_dynamics)
 add_subdirectory(2_dynamics_advanced)
 
 
-#Cxxdroid-binary: 2_dynamics_advanced/task1/task1
+#Cxxdroid-binary: 2_dynamics_advanced/task5/task2_5

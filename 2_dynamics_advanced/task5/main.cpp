@@ -218,6 +218,36 @@ void test_one_solving_2() {
     assert(result == 1);
 }
 
+void test_one_solving_3() {
+    const Board board = {
+            {true, false, false, }, {false, false, true, } ,};
+    const auto result = count_fillings(board);
+    assert(result == 1);
+}
+
+void test_big_1() {
+    const Board board = Board(3, std::vector<bool>(4, false));
+    const auto result = count_fillings(board);
+    assert(result == 11);
+}
+
+void test_last_row_1() {
+	const Board board = {
+		{false, false,  true, false, true, true},
+		{true, false,  false, false, false, false}, };
+    const auto result = count_fillings(board);
+    assert(result == 1);
+}
+
+void test_by_dm_1()
+{
+	const Board board = {
+            {false, false, true},
+            {false, false, true},};
+    const auto result = count_fillings(board);
+    assert(result == 2);
+}
+
 void test_by_al_1() {
     const Board board = {
             {false, false, false, false, },
@@ -239,6 +269,7 @@ void test_by_al_2() {
     assert(result == 8);
 }
 
+
 void run_all_tests() {
     test_from_task_1();
     test_from_task_2();
@@ -253,8 +284,12 @@ void run_all_tests() {
     test_impossible_2();
     test_impossible_3();
     test_one_solving_1();
-    test_one_solving_2();
-    test_by_al_1();
+    test_one_solving_2();;
+    test_one_solving_3();
+	test_big_1();
+	test_last_row_1();
+	test_by_dm_1();
+	test_by_al_1();
     test_by_al_2();
 }
 
