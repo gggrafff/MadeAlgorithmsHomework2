@@ -59,7 +59,7 @@ using Path = std::pair<uint64_t, std::vector<size_t>>;
  * @return Значение бита.
  */
 template<typename NumberType>
-NumberType getBit(NumberType mask, uint8_t index) {
+NumberType get_bit(NumberType mask, uint8_t index) {
     return (mask >> index) & 1;
 }
 
@@ -82,7 +82,7 @@ Path find_shortest_path(const Graph &graph) {
     for (uint32_t mask = 1; mask < N; ++mask) {
         for (size_t v = 0; v < graph.size(); ++v) {
             for (size_t u = 0; u < graph.size(); ++u) {
-                if (getBit(mask, static_cast<uint8_t>(u)) == 1) {
+                if (get_bit(mask, static_cast<uint8_t>(u)) == 1) {
                     const auto length = graph[u][v] + dp[u][mask - (1 << u)];
                     if (length < dp[v][mask]) {
                         dp[v][mask] = length;

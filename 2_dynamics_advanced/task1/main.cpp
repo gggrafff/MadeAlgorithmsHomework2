@@ -63,7 +63,7 @@ using Graph = std::vector<std::vector<bool>>;
  * @return Значение бита.
  */
 template<typename NumberType>
-NumberType getBit(NumberType mask, uint8_t index) {
+NumberType get_bit(NumberType mask, uint8_t index) {
     return (mask >> index) & 1;
 }
 
@@ -78,10 +78,10 @@ uint64_t find_highest_matching(const Graph &graph) {
     std::vector<uint64_t> dp(N, 0);
     for (size_t mask = 1; mask < N; ++mask) {
         for (size_t i = 0; i < graph.size(); ++i) {
-            if (getBit(mask, static_cast<uint8_t>(i)) == 1) {
+            if (get_bit(mask, static_cast<uint8_t>(i)) == 1) {
                 dp[mask] = dp[mask - (1 << i)];  // mask' = mask - 2^i
                 for (size_t j = 0; j < graph.size(); ++j) {
-                    if (getBit(mask, static_cast<uint8_t>(j)) == 1 && graph[i][j]) {
+                    if (get_bit(mask, static_cast<uint8_t>(j)) == 1 && graph[i][j]) {
                         dp[mask] = std::max(dp[mask], dp[mask - (1 << i) - (1 << j)] + 1);  // mask'' = mask - 2^i - 2^j
                     }
                 }
