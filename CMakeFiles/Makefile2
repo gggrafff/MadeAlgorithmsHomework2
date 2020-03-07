@@ -52,19 +52,145 @@ CMAKE_BINARY_DIR = /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
+all: 1_dynamics/all
 all: 2_dynamics_advanced/all
+all: 3_numbers/all
 
 .PHONY : all
 
 # The main recursive "preinstall" target.
+preinstall: 1_dynamics/preinstall
 preinstall: 2_dynamics_advanced/preinstall
+preinstall: 3_numbers/preinstall
 
 .PHONY : preinstall
 
 # The main recursive "clean" target.
+clean: 1_dynamics/clean
 clean: 2_dynamics_advanced/clean
+clean: 3_numbers/clean
 
 .PHONY : clean
+
+#=============================================================================
+# Directory level rules for directory 1_dynamics
+
+# Recursive "all" directory target.
+1_dynamics/all: 1_dynamics/task1/all
+1_dynamics/all: 1_dynamics/task2/all
+1_dynamics/all: 1_dynamics/task3/all
+1_dynamics/all: 1_dynamics/task4/all
+1_dynamics/all: 1_dynamics/task5/all
+
+.PHONY : 1_dynamics/all
+
+# Recursive "preinstall" directory target.
+1_dynamics/preinstall: 1_dynamics/task1/preinstall
+1_dynamics/preinstall: 1_dynamics/task2/preinstall
+1_dynamics/preinstall: 1_dynamics/task3/preinstall
+1_dynamics/preinstall: 1_dynamics/task4/preinstall
+1_dynamics/preinstall: 1_dynamics/task5/preinstall
+
+.PHONY : 1_dynamics/preinstall
+
+# Recursive "clean" directory target.
+1_dynamics/clean: 1_dynamics/task1/clean
+1_dynamics/clean: 1_dynamics/task2/clean
+1_dynamics/clean: 1_dynamics/task3/clean
+1_dynamics/clean: 1_dynamics/task4/clean
+1_dynamics/clean: 1_dynamics/task5/clean
+
+.PHONY : 1_dynamics/clean
+
+#=============================================================================
+# Directory level rules for directory 1_dynamics/task1
+
+# Recursive "all" directory target.
+1_dynamics/task1/all: 1_dynamics/task1/CMakeFiles/task1_1.dir/all
+
+.PHONY : 1_dynamics/task1/all
+
+# Recursive "preinstall" directory target.
+1_dynamics/task1/preinstall:
+
+.PHONY : 1_dynamics/task1/preinstall
+
+# Recursive "clean" directory target.
+1_dynamics/task1/clean: 1_dynamics/task1/CMakeFiles/task1_1.dir/clean
+
+.PHONY : 1_dynamics/task1/clean
+
+#=============================================================================
+# Directory level rules for directory 1_dynamics/task2
+
+# Recursive "all" directory target.
+1_dynamics/task2/all: 1_dynamics/task2/CMakeFiles/task1_2.dir/all
+
+.PHONY : 1_dynamics/task2/all
+
+# Recursive "preinstall" directory target.
+1_dynamics/task2/preinstall:
+
+.PHONY : 1_dynamics/task2/preinstall
+
+# Recursive "clean" directory target.
+1_dynamics/task2/clean: 1_dynamics/task2/CMakeFiles/task1_2.dir/clean
+
+.PHONY : 1_dynamics/task2/clean
+
+#=============================================================================
+# Directory level rules for directory 1_dynamics/task3
+
+# Recursive "all" directory target.
+1_dynamics/task3/all: 1_dynamics/task3/CMakeFiles/task1_3.dir/all
+
+.PHONY : 1_dynamics/task3/all
+
+# Recursive "preinstall" directory target.
+1_dynamics/task3/preinstall:
+
+.PHONY : 1_dynamics/task3/preinstall
+
+# Recursive "clean" directory target.
+1_dynamics/task3/clean: 1_dynamics/task3/CMakeFiles/task1_3.dir/clean
+
+.PHONY : 1_dynamics/task3/clean
+
+#=============================================================================
+# Directory level rules for directory 1_dynamics/task4
+
+# Recursive "all" directory target.
+1_dynamics/task4/all: 1_dynamics/task4/CMakeFiles/task1_4.dir/all
+
+.PHONY : 1_dynamics/task4/all
+
+# Recursive "preinstall" directory target.
+1_dynamics/task4/preinstall:
+
+.PHONY : 1_dynamics/task4/preinstall
+
+# Recursive "clean" directory target.
+1_dynamics/task4/clean: 1_dynamics/task4/CMakeFiles/task1_4.dir/clean
+
+.PHONY : 1_dynamics/task4/clean
+
+#=============================================================================
+# Directory level rules for directory 1_dynamics/task5
+
+# Recursive "all" directory target.
+1_dynamics/task5/all: 1_dynamics/task5/CMakeFiles/task1_5.dir/all
+
+.PHONY : 1_dynamics/task5/all
+
+# Recursive "preinstall" directory target.
+1_dynamics/task5/preinstall:
+
+.PHONY : 1_dynamics/task5/preinstall
+
+# Recursive "clean" directory target.
+1_dynamics/task5/clean: 1_dynamics/task5/CMakeFiles/task1_5.dir/clean
+
+.PHONY : 1_dynamics/task5/clean
 
 #=============================================================================
 # Directory level rules for directory 2_dynamics_advanced
@@ -208,13 +334,184 @@ clean: 2_dynamics_advanced/clean
 .PHONY : 2_dynamics_advanced/task6/clean
 
 #=============================================================================
+# Directory level rules for directory 3_numbers
+
+# Recursive "all" directory target.
+3_numbers/all: 3_numbers/task1/all
+
+.PHONY : 3_numbers/all
+
+# Recursive "preinstall" directory target.
+3_numbers/preinstall: 3_numbers/task1/preinstall
+
+.PHONY : 3_numbers/preinstall
+
+# Recursive "clean" directory target.
+3_numbers/clean: 3_numbers/task1/clean
+
+.PHONY : 3_numbers/clean
+
+#=============================================================================
+# Directory level rules for directory 3_numbers/task1
+
+# Recursive "all" directory target.
+3_numbers/task1/all: 3_numbers/task1/CMakeFiles/task3_1.dir/all
+
+.PHONY : 3_numbers/task1/all
+
+# Recursive "preinstall" directory target.
+3_numbers/task1/preinstall:
+
+.PHONY : 3_numbers/task1/preinstall
+
+# Recursive "clean" directory target.
+3_numbers/task1/clean: 3_numbers/task1/CMakeFiles/task3_1.dir/clean
+
+.PHONY : 3_numbers/task1/clean
+
+#=============================================================================
+# Target rules for target 1_dynamics/task1/CMakeFiles/task1_1.dir
+
+# All Build rule for target.
+1_dynamics/task1/CMakeFiles/task1_1.dir/all:
+	$(MAKE) -f 1_dynamics/task1/CMakeFiles/task1_1.dir/build.make 1_dynamics/task1/CMakeFiles/task1_1.dir/depend
+	$(MAKE) -f 1_dynamics/task1/CMakeFiles/task1_1.dir/build.make 1_dynamics/task1/CMakeFiles/task1_1.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=1,2 "Built target task1_1"
+.PHONY : 1_dynamics/task1/CMakeFiles/task1_1.dir/all
+
+# Build rule for subdir invocation for target.
+1_dynamics/task1/CMakeFiles/task1_1.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 1_dynamics/task1/CMakeFiles/task1_1.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles 0
+.PHONY : 1_dynamics/task1/CMakeFiles/task1_1.dir/rule
+
+# Convenience name for target.
+task1_1: 1_dynamics/task1/CMakeFiles/task1_1.dir/rule
+
+.PHONY : task1_1
+
+# clean rule for target.
+1_dynamics/task1/CMakeFiles/task1_1.dir/clean:
+	$(MAKE) -f 1_dynamics/task1/CMakeFiles/task1_1.dir/build.make 1_dynamics/task1/CMakeFiles/task1_1.dir/clean
+.PHONY : 1_dynamics/task1/CMakeFiles/task1_1.dir/clean
+
+#=============================================================================
+# Target rules for target 1_dynamics/task2/CMakeFiles/task1_2.dir
+
+# All Build rule for target.
+1_dynamics/task2/CMakeFiles/task1_2.dir/all:
+	$(MAKE) -f 1_dynamics/task2/CMakeFiles/task1_2.dir/build.make 1_dynamics/task2/CMakeFiles/task1_2.dir/depend
+	$(MAKE) -f 1_dynamics/task2/CMakeFiles/task1_2.dir/build.make 1_dynamics/task2/CMakeFiles/task1_2.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=3,4 "Built target task1_2"
+.PHONY : 1_dynamics/task2/CMakeFiles/task1_2.dir/all
+
+# Build rule for subdir invocation for target.
+1_dynamics/task2/CMakeFiles/task1_2.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 1_dynamics/task2/CMakeFiles/task1_2.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles 0
+.PHONY : 1_dynamics/task2/CMakeFiles/task1_2.dir/rule
+
+# Convenience name for target.
+task1_2: 1_dynamics/task2/CMakeFiles/task1_2.dir/rule
+
+.PHONY : task1_2
+
+# clean rule for target.
+1_dynamics/task2/CMakeFiles/task1_2.dir/clean:
+	$(MAKE) -f 1_dynamics/task2/CMakeFiles/task1_2.dir/build.make 1_dynamics/task2/CMakeFiles/task1_2.dir/clean
+.PHONY : 1_dynamics/task2/CMakeFiles/task1_2.dir/clean
+
+#=============================================================================
+# Target rules for target 1_dynamics/task3/CMakeFiles/task1_3.dir
+
+# All Build rule for target.
+1_dynamics/task3/CMakeFiles/task1_3.dir/all:
+	$(MAKE) -f 1_dynamics/task3/CMakeFiles/task1_3.dir/build.make 1_dynamics/task3/CMakeFiles/task1_3.dir/depend
+	$(MAKE) -f 1_dynamics/task3/CMakeFiles/task1_3.dir/build.make 1_dynamics/task3/CMakeFiles/task1_3.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=5,6 "Built target task1_3"
+.PHONY : 1_dynamics/task3/CMakeFiles/task1_3.dir/all
+
+# Build rule for subdir invocation for target.
+1_dynamics/task3/CMakeFiles/task1_3.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 1_dynamics/task3/CMakeFiles/task1_3.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles 0
+.PHONY : 1_dynamics/task3/CMakeFiles/task1_3.dir/rule
+
+# Convenience name for target.
+task1_3: 1_dynamics/task3/CMakeFiles/task1_3.dir/rule
+
+.PHONY : task1_3
+
+# clean rule for target.
+1_dynamics/task3/CMakeFiles/task1_3.dir/clean:
+	$(MAKE) -f 1_dynamics/task3/CMakeFiles/task1_3.dir/build.make 1_dynamics/task3/CMakeFiles/task1_3.dir/clean
+.PHONY : 1_dynamics/task3/CMakeFiles/task1_3.dir/clean
+
+#=============================================================================
+# Target rules for target 1_dynamics/task4/CMakeFiles/task1_4.dir
+
+# All Build rule for target.
+1_dynamics/task4/CMakeFiles/task1_4.dir/all:
+	$(MAKE) -f 1_dynamics/task4/CMakeFiles/task1_4.dir/build.make 1_dynamics/task4/CMakeFiles/task1_4.dir/depend
+	$(MAKE) -f 1_dynamics/task4/CMakeFiles/task1_4.dir/build.make 1_dynamics/task4/CMakeFiles/task1_4.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=7,8 "Built target task1_4"
+.PHONY : 1_dynamics/task4/CMakeFiles/task1_4.dir/all
+
+# Build rule for subdir invocation for target.
+1_dynamics/task4/CMakeFiles/task1_4.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 1_dynamics/task4/CMakeFiles/task1_4.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles 0
+.PHONY : 1_dynamics/task4/CMakeFiles/task1_4.dir/rule
+
+# Convenience name for target.
+task1_4: 1_dynamics/task4/CMakeFiles/task1_4.dir/rule
+
+.PHONY : task1_4
+
+# clean rule for target.
+1_dynamics/task4/CMakeFiles/task1_4.dir/clean:
+	$(MAKE) -f 1_dynamics/task4/CMakeFiles/task1_4.dir/build.make 1_dynamics/task4/CMakeFiles/task1_4.dir/clean
+.PHONY : 1_dynamics/task4/CMakeFiles/task1_4.dir/clean
+
+#=============================================================================
+# Target rules for target 1_dynamics/task5/CMakeFiles/task1_5.dir
+
+# All Build rule for target.
+1_dynamics/task5/CMakeFiles/task1_5.dir/all:
+	$(MAKE) -f 1_dynamics/task5/CMakeFiles/task1_5.dir/build.make 1_dynamics/task5/CMakeFiles/task1_5.dir/depend
+	$(MAKE) -f 1_dynamics/task5/CMakeFiles/task1_5.dir/build.make 1_dynamics/task5/CMakeFiles/task1_5.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=9,10 "Built target task1_5"
+.PHONY : 1_dynamics/task5/CMakeFiles/task1_5.dir/all
+
+# Build rule for subdir invocation for target.
+1_dynamics/task5/CMakeFiles/task1_5.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 1_dynamics/task5/CMakeFiles/task1_5.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles 0
+.PHONY : 1_dynamics/task5/CMakeFiles/task1_5.dir/rule
+
+# Convenience name for target.
+task1_5: 1_dynamics/task5/CMakeFiles/task1_5.dir/rule
+
+.PHONY : task1_5
+
+# clean rule for target.
+1_dynamics/task5/CMakeFiles/task1_5.dir/clean:
+	$(MAKE) -f 1_dynamics/task5/CMakeFiles/task1_5.dir/build.make 1_dynamics/task5/CMakeFiles/task1_5.dir/clean
+.PHONY : 1_dynamics/task5/CMakeFiles/task1_5.dir/clean
+
+#=============================================================================
 # Target rules for target 2_dynamics_advanced/task1/CMakeFiles/task2_1.dir
 
 # All Build rule for target.
 2_dynamics_advanced/task1/CMakeFiles/task2_1.dir/all:
 	$(MAKE) -f 2_dynamics_advanced/task1/CMakeFiles/task2_1.dir/build.make 2_dynamics_advanced/task1/CMakeFiles/task2_1.dir/depend
 	$(MAKE) -f 2_dynamics_advanced/task1/CMakeFiles/task2_1.dir/build.make 2_dynamics_advanced/task1/CMakeFiles/task2_1.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=1,2 "Built target task2_1"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=11,12 "Built target task2_1"
 .PHONY : 2_dynamics_advanced/task1/CMakeFiles/task2_1.dir/all
 
 # Build rule for subdir invocation for target.
@@ -241,7 +538,7 @@ task2_1: 2_dynamics_advanced/task1/CMakeFiles/task2_1.dir/rule
 2_dynamics_advanced/task2/CMakeFiles/task2_2.dir/all:
 	$(MAKE) -f 2_dynamics_advanced/task2/CMakeFiles/task2_2.dir/build.make 2_dynamics_advanced/task2/CMakeFiles/task2_2.dir/depend
 	$(MAKE) -f 2_dynamics_advanced/task2/CMakeFiles/task2_2.dir/build.make 2_dynamics_advanced/task2/CMakeFiles/task2_2.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=3,4 "Built target task2_2"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=13,14 "Built target task2_2"
 .PHONY : 2_dynamics_advanced/task2/CMakeFiles/task2_2.dir/all
 
 # Build rule for subdir invocation for target.
@@ -268,7 +565,7 @@ task2_2: 2_dynamics_advanced/task2/CMakeFiles/task2_2.dir/rule
 2_dynamics_advanced/task3/CMakeFiles/task2_3.dir/all:
 	$(MAKE) -f 2_dynamics_advanced/task3/CMakeFiles/task2_3.dir/build.make 2_dynamics_advanced/task3/CMakeFiles/task2_3.dir/depend
 	$(MAKE) -f 2_dynamics_advanced/task3/CMakeFiles/task2_3.dir/build.make 2_dynamics_advanced/task3/CMakeFiles/task2_3.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=5,6 "Built target task2_3"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=15,16 "Built target task2_3"
 .PHONY : 2_dynamics_advanced/task3/CMakeFiles/task2_3.dir/all
 
 # Build rule for subdir invocation for target.
@@ -295,7 +592,7 @@ task2_3: 2_dynamics_advanced/task3/CMakeFiles/task2_3.dir/rule
 2_dynamics_advanced/task4/CMakeFiles/task2_4.dir/all:
 	$(MAKE) -f 2_dynamics_advanced/task4/CMakeFiles/task2_4.dir/build.make 2_dynamics_advanced/task4/CMakeFiles/task2_4.dir/depend
 	$(MAKE) -f 2_dynamics_advanced/task4/CMakeFiles/task2_4.dir/build.make 2_dynamics_advanced/task4/CMakeFiles/task2_4.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=7,8 "Built target task2_4"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=17,18 "Built target task2_4"
 .PHONY : 2_dynamics_advanced/task4/CMakeFiles/task2_4.dir/all
 
 # Build rule for subdir invocation for target.
@@ -322,7 +619,7 @@ task2_4: 2_dynamics_advanced/task4/CMakeFiles/task2_4.dir/rule
 2_dynamics_advanced/task5/CMakeFiles/task2_5.dir/all:
 	$(MAKE) -f 2_dynamics_advanced/task5/CMakeFiles/task2_5.dir/build.make 2_dynamics_advanced/task5/CMakeFiles/task2_5.dir/depend
 	$(MAKE) -f 2_dynamics_advanced/task5/CMakeFiles/task2_5.dir/build.make 2_dynamics_advanced/task5/CMakeFiles/task2_5.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=9,10 "Built target task2_5"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=19,20 "Built target task2_5"
 .PHONY : 2_dynamics_advanced/task5/CMakeFiles/task2_5.dir/all
 
 # Build rule for subdir invocation for target.
@@ -349,7 +646,7 @@ task2_5: 2_dynamics_advanced/task5/CMakeFiles/task2_5.dir/rule
 2_dynamics_advanced/task6/CMakeFiles/task2_6.dir/all:
 	$(MAKE) -f 2_dynamics_advanced/task6/CMakeFiles/task2_6.dir/build.make 2_dynamics_advanced/task6/CMakeFiles/task2_6.dir/depend
 	$(MAKE) -f 2_dynamics_advanced/task6/CMakeFiles/task2_6.dir/build.make 2_dynamics_advanced/task6/CMakeFiles/task2_6.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=11,12 "Built target task2_6"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=21,22 "Built target task2_6"
 .PHONY : 2_dynamics_advanced/task6/CMakeFiles/task2_6.dir/all
 
 # Build rule for subdir invocation for target.
@@ -368,6 +665,33 @@ task2_6: 2_dynamics_advanced/task6/CMakeFiles/task2_6.dir/rule
 2_dynamics_advanced/task6/CMakeFiles/task2_6.dir/clean:
 	$(MAKE) -f 2_dynamics_advanced/task6/CMakeFiles/task2_6.dir/build.make 2_dynamics_advanced/task6/CMakeFiles/task2_6.dir/clean
 .PHONY : 2_dynamics_advanced/task6/CMakeFiles/task2_6.dir/clean
+
+#=============================================================================
+# Target rules for target 3_numbers/task1/CMakeFiles/task3_1.dir
+
+# All Build rule for target.
+3_numbers/task1/CMakeFiles/task3_1.dir/all:
+	$(MAKE) -f 3_numbers/task1/CMakeFiles/task3_1.dir/build.make 3_numbers/task1/CMakeFiles/task3_1.dir/depend
+	$(MAKE) -f 3_numbers/task1/CMakeFiles/task3_1.dir/build.make 3_numbers/task1/CMakeFiles/task3_1.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles --progress-num=23,24 "Built target task3_1"
+.PHONY : 3_numbers/task1/CMakeFiles/task3_1.dir/all
+
+# Build rule for subdir invocation for target.
+3_numbers/task1/CMakeFiles/task3_1.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 3_numbers/task1/CMakeFiles/task3_1.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/CMakeFiles 0
+.PHONY : 3_numbers/task1/CMakeFiles/task3_1.dir/rule
+
+# Convenience name for target.
+task3_1: 3_numbers/task1/CMakeFiles/task3_1.dir/rule
+
+.PHONY : task3_1
+
+# clean rule for target.
+3_numbers/task1/CMakeFiles/task3_1.dir/clean:
+	$(MAKE) -f 3_numbers/task1/CMakeFiles/task3_1.dir/build.make 3_numbers/task1/CMakeFiles/task3_1.dir/clean
+.PHONY : 3_numbers/task1/CMakeFiles/task3_1.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.
