@@ -357,8 +357,8 @@ int main(int argc, char *argv[]) {
     size_t m{0};
     std::cin >> n >> m;
     Board board(n, std::vector<bool>(m, false));
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < m; ++j) {
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < m; ++j) {
             char c;
             std::cin >> c;
             if (c == 'X') {
