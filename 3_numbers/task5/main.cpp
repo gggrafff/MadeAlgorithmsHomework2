@@ -130,18 +130,18 @@ uint64_t solve_system_linear_comparisons(SystemLinearComparision system) {
 
 void test_gcd_random() {
   std::random_device rd;
-  const std::uniform_int_distribution<uint64_t> numbers_generator_big(0, 100);
+  std::uniform_int_distribution<uint64_t> numbers_generator_big(0, 100);
   for(auto i=0;i<100;++i) {
-    const auto first = numbers_generator_big(rd);
-    const auto second = numbers_generator_big(rd);
+    auto first = numbers_generator_big(rd);
+    auto second = numbers_generator_big(rd);
     auto [gcd, x, y] = continued_division(first, second);
     assert(std::gcd(first, second) == gcd);
     assert((first * x + second * y) == gcd);
   }
-  const std::uniform_int_distribution<uint64_t> numbers_generator_small(0, 7);
+  std::uniform_int_distribution<uint64_t> numbers_generator_small(0, 7);
   for (auto i = 0; i < 20; ++i) {
-    const auto first = numbers_generator_small(rd);
-    const auto second = numbers_generator_small(rd);
+    auto first = numbers_generator_small(rd);
+    auto second = numbers_generator_small(rd);
     auto [gcd, x, y] = continued_division(first, second);
     assert(std::gcd(first, second) == gcd);
     assert((first * x + second * y) == gcd);
@@ -159,7 +159,7 @@ void test_inverse_elements() {
 
 void test_inverse_elements_random() {
   std::random_device rd;
-  const std::uniform_int_distribution<uint64_t> numbers_generator_big(0, 100);
+  std::uniform_int_distribution<uint64_t> numbers_generator_big(0, 100);
   for (auto i = 0; i < 100; ++i) {
     const auto m = numbers_generator_big(rd) + 1;
     const auto a = numbers_generator_big(rd);
@@ -168,7 +168,7 @@ void test_inverse_elements_random() {
       assert(((a * a_inv) % m) == 1);
     }
   }
-  const std::uniform_int_distribution<uint64_t> numbers_generator_small(0, 7);
+  std::uniform_int_distribution<uint64_t> numbers_generator_small(0, 7);
   for (auto i = 0; i < 20; ++i) {
     const auto m = numbers_generator_small(rd) + 1;
     const auto a = numbers_generator_small(rd);
@@ -228,6 +228,25 @@ void test_non_primes() {
   assert(result == 22);
 }
 
+void test_by_almalynx() {
+	auto result = solve_system_linear_comparisons({ { 2, 5, }, { 15, 17 } });
+	assert(result == 32);
+	result = solve_system_linear_comparisons({ { 15, 17, }, { 5, 12 } });
+	assert(result == 185);
+	result = solve_system_linear_comparisons({ { 5, 12, }, { 2, 5 } });
+	assert(result == 17);
+}
+
+void test_big_numbers(){
+	auto result = solve_system_linear_comparisons({ { 101, 109, }, { 103, 107 } });
+	std::cout<<result<<std::endl;
+	assert(result == 32);
+	/*result = solve_system_linear_comparisons({ { 15, 17, }, { 5, 12 } });
+	assert(result == 185);
+	result = solve_system_linear_comparisons({ { 5, 12, }, { 2, 5 } });
+	assert(result == 17);*/
+}
+
 void run_all_tests() {
   test_gcd_random();
 
@@ -241,6 +260,8 @@ void run_all_tests() {
   test_zeros_remainders_2();
   test_non_primes();
   test_from_cyberforum();
+  test_by_almalynx();
+  test_big_numbers();
 }
 
 // Конец тестов

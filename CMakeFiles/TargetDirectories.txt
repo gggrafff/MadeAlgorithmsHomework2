@@ -42,3 +42,15 @@
 /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task1/CMakeFiles/rebuild_cache.dir
 /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task1/CMakeFiles/edit_cache.dir
 /storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task1/CMakeFiles/task3_1.dir
+/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task2/CMakeFiles/rebuild_cache.dir
+/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task2/CMakeFiles/edit_cache.dir
+/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task2/CMakeFiles/task3_2.dir
+/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task3/CMakeFiles/rebuild_cache.dir
+/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task3/CMakeFiles/edit_cache.dir
+/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task3/CMakeFiles/task3_3.dir
+/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task4/CMakeFiles/rebuild_cache.dir
+/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task4/CMakeFiles/edit_cache.dir
+/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task4/CMakeFiles/task3_4.dir
+/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task5/CMakeFiles/rebuild_cache.dir
+/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task5/CMakeFiles/edit_cache.dir
+/storage/37DD-7B90/Android/data/com.manichord.mgit/files/repo/MadeAlgorithmsHomework2/3_numbers/task5/CMakeFiles/task3_5.dir
