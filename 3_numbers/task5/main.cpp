@@ -50,7 +50,7 @@ using SystemLinearComparision = std::vector<LinearComparision>;
  * @param b Второе из чисел, для которых нужно найти НОД
  * @return (НОД(a, b), x, y) такие, что a * x + b * y = НОД(a, b)
  */
-std::tuple<uint64_t, int64_t, int64_t> continued_division(uint64_t a, uint64_t b) {
+std::tuple<int64_t, int64_t, int64_t> continued_division(int64_t a, int64_t b) {
     if (b == 0) {
         return {a, 1, 0};
     }
@@ -196,7 +196,46 @@ uint64_t solve_system_linear_comparisons(SystemLinearComparision system) {
     if (M1_inv == 0 && M2_inv == 0) {
         return a;
     }
-    const auto x = ((a * M1 * M1_inv) % M + (b * M2 * M2_inv) % M) % M;
+    if (n!=1) {
+        assert((M1 * M1_inv) % n == 1);
+    }
+    if (m!=1) {
+        assert((M2 * M2_inv) % m == 1);
+    }
+
+    //const auto old_x = (a * M1 * M1_inv + b * M2 * M2_inv) % M;
+    uint64_t x = 0;
+    if(a != 0 && b!=0) {
+        uint64_t x1 = 0;
+        uint64_t am1 = a * M1;
+        uint64_t r1 = (1ULL << 60) / am1 + 1;
+        for (uint64_t i = 0; i < (M1_inv / r1); ++i) {
+            x1 += am1 * r1;
+            x1 %= M;
+        }
+        x1 += am1 * (M1_inv % r1);
+        x1 %= M;
+
+        uint64_t x2 = 0;
+        uint64_t bm2 = b * M2;
+        uint64_t r2 = (1ULL << 60) / bm2 + 1;
+        for (uint64_t i = 0; i < (M2_inv / r2); ++i) {
+            x2 += bm2 * r2;
+            x2 %= M;
+        }
+        x2 += bm2 * (M2_inv % r2);
+        x2 %= M;
+
+        x = (x1 + x2) % M;
+        assert(x % n == a);
+        assert(x % m == b);
+    }
+    else
+    {
+        x = (a * M1 * M1_inv + b * M2 * M2_inv) % M;
+        assert(x % n == a);
+        assert(x % m == b);
+    }
     return x;
 }
 
@@ -225,22 +264,60 @@ void test_euler_function_2() {
 }
 
 void test_gcd_random() {
-    std::random_device rd;
-    std::uniform_int_distribution<uint64_t> numbers_generator_big(0, 100);
-    for (auto i = 0; i < 100; ++i) {
-        auto first = numbers_generator_big(rd);
-        auto second = numbers_generator_big(rd);
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> numbers_generator_big(0, 100);
+    for (auto i = 0; i < 1000; ++i) {
+        auto first = numbers_generator_big(gen);
+        auto second = numbers_generator_big(gen);
         auto[gcd, x, y] = continued_division(first, second);
         assert(std::gcd(first, second) == gcd);
         assert((first * x + second * y) == gcd);
     }
-    std::uniform_int_distribution<uint64_t> numbers_generator_small(0, 7);
-    for (auto i = 0; i < 20; ++i) {
-        auto first = numbers_generator_small(rd);
-        auto second = numbers_generator_small(rd);
+    std::uniform_int_distribution<uint64_t> numbers_generator_small(0, 10);
+    for (auto i = 0; i < 100; ++i) {
+        auto first = numbers_generator_small(gen);
+        auto second = numbers_generator_small(gen);
         auto[gcd, x, y] = continued_division(first, second);
         assert(std::gcd(first, second) == gcd);
         assert((first * x + second * y) == gcd);
+    }
+}
+
+void test_solving_random() {
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> numbers_generator_small(0, 1000);
+    for(auto i=0; i<100;++i) {
+        uint64_t n{2}, m{2};
+        while (std::gcd(n, m) != 1) {
+            n = numbers_generator_small(gen) + 1;
+            m = numbers_generator_small(gen) + 1;
+        }
+        auto a = numbers_generator_small(gen)%n;
+        auto b = numbers_generator_small(gen)%m;
+
+        auto result = solve_system_linear_comparisons({{a, n,},
+                                                       {b, m}});
+
+        assert(result % n == a);
+        assert(result % m == b);
+    }
+    std::uniform_int_distribution<> numbers_generator_big(1000000, 1000000000);
+    for(auto i=0; i<1;++i) {
+        uint64_t n{2}, m{2};
+        while (std::gcd(n, m) != 1) {
+            n = numbers_generator_big(gen) + 1;
+            m = numbers_generator_big(gen) + 1;
+        }
+        auto a = numbers_generator_big(gen)%n;
+        auto b = numbers_generator_big(gen)%m;
+
+        auto result = solve_system_linear_comparisons({{a, n,},
+                                                       {b, m}});
+
+        assert(result % n == a);
+        assert(result % m == b);
     }
 }
 
@@ -261,29 +338,36 @@ void test_inverse_elements() {
 }
 
 void test_inverse_elements_random() {
-    std::random_device rd;
-    std::uniform_int_distribution<uint64_t> numbers_generator_big(0, 100);
-    for (auto i = 0; i < 100; ++i) {
-        const auto m = numbers_generator_big(rd) + 1;
-        const auto a = numbers_generator_big(rd);
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> numbers_generator_big(1000000, 1000000000);
+    for (auto i = 0; i < 5; ++i) {
+        const auto m = numbers_generator_big(gen) + 1;
+        const auto a = numbers_generator_big(gen) % m;
         const auto a_inv_1 = calculate_inverse_element_euclidean(a, m);
-        if (a_inv_1 != 0) {
+        auto gcd = std::gcd(a, m);
+        if (gcd == 1 && a != 0) {
             assert(((a * a_inv_1) % m) == 1);
             const auto a_inv_2 = calculate_inverse_element_euler(a, m);
             assert(((a * a_inv_2) % m) == 1);
             assert(a_inv_1 == a_inv_2);
+        } else {
+            assert(a_inv_1 == 0);
         }
     }
-    std::uniform_int_distribution<uint64_t> numbers_generator_small(0, 7);
-    for (auto i = 0; i < 20; ++i) {
-        const auto m = numbers_generator_small(rd) + 1;
-        const auto a = numbers_generator_small(rd);
+    std::uniform_int_distribution<> numbers_generator_small(0, 1000);
+    for (auto i = 0; i < 1000; ++i) {
+        const auto m = numbers_generator_small(gen) + 1;
+        const auto a = numbers_generator_small(gen) % m;
         const auto a_inv_1 = calculate_inverse_element_euclidean(a, m);
-        if (a_inv_1 != 0) {
+        auto gcd = std::gcd(a, m);
+        if (gcd == 1 && a != 0) {
             assert(((a * a_inv_1) % m) == 1);
             const auto a_inv_2 = calculate_inverse_element_euler(a, m);
             assert(((a * a_inv_2) % m) == 1);
             assert(a_inv_1 == a_inv_2);
+        } else {
+            assert(a_inv_1 == 0);
         }
     }
 }
@@ -373,10 +457,12 @@ void run_all_tests() {
     test_euler_function_1();
     test_euler_function_2();
 
-    test_gcd_random();
+    /*test_gcd_random();
 
     test_inverse_elements();
-    test_inverse_elements_random();
+    test_inverse_elements_random();*/
+
+    test_solving_random();
 
     test_from_task();
     test_zeros_remainders();
@@ -392,8 +478,8 @@ void run_all_tests() {
 // Конец тестов
 
 int main(int argc, char *argv[]) {
-    run_all_tests();
-    return 0;
+    //run_all_tests();
+    //return 0;
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
     std::cout.tie(nullptr);
