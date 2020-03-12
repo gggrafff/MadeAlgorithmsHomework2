@@ -11,7 +11,7 @@
  * где n и m взаимно просты. Среди решений следует выбрать наименьшее неотрицательное число.
  *
  * Входные данные
- * Первая строка входных данных содержит число N, 1≤N≤104, — количество тестов, для которых нужно решить задачу.
+ * Первая строка входных данных содержит число N, 1≤N≤10^4, — количество тестов, для которых нужно решить задачу.
  * Следующие N строк содержат по четыре целых числа ai, bi, ni и mi (1≤ni,mi≤10^9, 0≤ai<ni, 0≤bi<mi).
  * Выходные данные
  * Для каждого из тестов выведите искомое наименьшее неотрицательное число xi.
@@ -166,6 +166,24 @@ uint64_t calculate_inverse_element_euler(const uint64_t a, const uint64_t n) {
     return result;
 }
 
+uint64_t careful_multiplication(uint64_t a, uint64_t b, uint64_t m)
+{
+    if (a==0 || b==0)
+    {
+        return 0;
+    }
+    uint64_t x = 0;
+    while (b!=0)
+    {
+        uint64_t r = (1ULL << 60) / a;
+        r = std::min(r, b);
+        x += a * r;
+        x %= m;
+        b-=r;
+    }
+    return x;
+}
+
 /**
  * @brief Решение системы двух линейных сравнений x = a (mod n) & x = b (mod m).
  * @details Для поиска решения используется китайская теорема об остатках.
@@ -190,8 +208,8 @@ uint64_t solve_system_linear_comparisons(SystemLinearComparision system) {
     const auto M1 = m;
     const auto M2 = n;
     // 3. Находим Mi^-1 = 1 / Mi (mod ai), используя расширенный алгоритм Евклида
-    const auto M1_inv = calculate_inverse_element_euler(M1, n);
-    const auto M2_inv = calculate_inverse_element_euler(M2, m);
+    const auto M1_inv = calculate_inverse_element_euclidean(M1, n);
+    const auto M2_inv = calculate_inverse_element_euclidean(M2, m);
     // 4. Вычисляем искомое значение x = sum(ri * Mi * Mi^-1) (mod M)
     if (M1_inv == 0 && M2_inv == 0) {
         return a;
@@ -203,39 +221,11 @@ uint64_t solve_system_linear_comparisons(SystemLinearComparision system) {
         assert((M2 * M2_inv) % m == 1);
     }
 
-    //const auto old_x = (a * M1 * M1_inv + b * M2 * M2_inv) % M;
-    uint64_t x = 0;
-    if(a != 0 && b!=0) {
-        uint64_t x1 = 0;
-        uint64_t am1 = a * M1;
-        uint64_t r1 = (1ULL << 60) / am1 + 1;
-        for (uint64_t i = 0; i < (M1_inv / r1); ++i) {
-            x1 += am1 * r1;
-            x1 %= M;
-        }
-        x1 += am1 * (M1_inv % r1);
-        x1 %= M;
-
-        uint64_t x2 = 0;
-        uint64_t bm2 = b * M2;
-        uint64_t r2 = (1ULL << 60) / bm2 + 1;
-        for (uint64_t i = 0; i < (M2_inv / r2); ++i) {
-            x2 += bm2 * r2;
-            x2 %= M;
-        }
-        x2 += bm2 * (M2_inv % r2);
-        x2 %= M;
-
-        x = (x1 + x2) % M;
-        assert(x % n == a);
-        assert(x % m == b);
-    }
-    else
-    {
-        x = (a * M1 * M1_inv + b * M2 * M2_inv) % M;
-        assert(x % n == a);
-        assert(x % m == b);
-    }
+    uint64_t x1 = careful_multiplication(a*M1, M1_inv, M);
+    uint64_t x2 = careful_multiplication(b*M2, M2_inv, M);
+    uint64_t x = (x1 + x2) % M;
+    assert(x % n == a);
+    assert(x % m == b);
     return x;
 }
 
@@ -447,20 +437,30 @@ void test_by_almalynx() {
     assert(result == 17);
 }
 
-void test_big_numbers() {
-    /*auto result = solve_system_linear_comparisons({{999999993,  1000000000,},
-                                                   {999999997, 999999999}});
-    assert(result == 32);*/
+void test_careful_multiplication() {
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> numbers_generator_big(0, 1000);
+    for (auto i = 0; i < 1000; ++i) {
+        auto module = numbers_generator_big(gen)+1;
+        auto first = numbers_generator_big(gen)%module;
+        auto second = numbers_generator_big(gen)%module;
+        auto result = careful_multiplication(first, second, module);
+        auto true_result = (first * second) % module;
+        assert(result == true_result);
+    }
 }
 
 void run_all_tests() {
+    test_careful_multiplication();
+
     test_euler_function_1();
     test_euler_function_2();
 
-    /*test_gcd_random();
+    test_gcd_random();
 
     test_inverse_elements();
-    test_inverse_elements_random();*/
+    test_inverse_elements_random();
 
     test_solving_random();
 
@@ -472,7 +472,6 @@ void run_all_tests() {
     test_non_primes();
     test_from_cyberforum();
     test_by_almalynx();
-    test_big_numbers();
 }
 
 // Конец тестов
