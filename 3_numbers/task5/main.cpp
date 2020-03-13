@@ -495,6 +495,7 @@ int main(int argc, char *argv[]) {
     size_t N{0};
     std::cin >> N;
     std::vector<SystemLinearComparision> systems;
+    systems.reserve(N);
     for (size_t i = 0; i < N; ++i) {
         uint64_t a, b, n, m;
         std::cin >> a >> b >> n >> m;
