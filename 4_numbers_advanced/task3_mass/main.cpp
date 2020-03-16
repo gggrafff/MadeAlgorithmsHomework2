@@ -1,4 +1,5 @@
 /*
+
  */
 
 #include <iostream>
@@ -19,8 +20,10 @@
  * @return Произведение по модулю.
  */
 uint64_t binprod(uint64_t a, uint64_t b, uint64_t module) {
-    if (a == 0 || b == 0)
+    if (a == 0 || b == 0) {
         return 0;
+    }
+    assert(module != 1);
     if (b % 2 == 1)
         return (binprod(a, b - 1, module) + a) % module;
     else {
@@ -83,6 +86,14 @@ uint64_t binpow_large(uint64_t a, uint64_t b, uint64_t module) {
  * @return Результат возведения в степень.
  */
 uint64_t binpow(uint64_t a, uint64_t b, uint64_t module) {
+    assert(!(a == 0 && b == 0));
+    if (a == 0) {
+        return 0;
+    }
+    if (b == 0) {
+        return 1;
+    }
+    assert(module != 1);
     if (a < 1000000000ULL) {
         return binpow_small(a, b, module);
     } else {
@@ -90,25 +101,34 @@ uint64_t binpow(uint64_t a, uint64_t b, uint64_t module) {
     }
 }
 
-/**
- * @brief Факторизация числа перебором делителей.
- * @param number Число, которое нужно факторизовать.
- * @return Массив простых делителей.
- */
-std::vector<uint64_t> factorize(uint64_t number) {
-    std::vector<uint64_t> result;
 
-    for (uint64_t i = 2; i <= sqrt(number); i++) {
-        while (number % i == 0) {
-            result.push_back(i);
-            number /= i;
+std::vector<std::vector<uint64_t>> factorize(const std::vector<uint64_t> &numbers, const int8_t addition) {
+    uint64_t max_number = *std::max_element(numbers.begin(), numbers.end()) + addition;
+    std::vector<uint64_t> primes;
+    std::vector<uint64_t> least_prime(max_number + 1, 0);
+
+    for (uint64_t i = 2; i <= max_number; ++i) {
+        if (least_prime[i] == 0) {
+            least_prime[i] = i;
+            primes.push_back(i);
+        }
+        for (const auto prime: primes) {
+            if ((prime > least_prime[i]) || (prime * i > max_number)) {
+                break;
+            }
+            least_prime[prime * i] = prime;
         }
     }
 
-    if (number != 1) {
-        result.push_back(number);
+    std::vector<std::vector<uint64_t>> result;
+    for (auto number: numbers) {
+        result.emplace_back();
+        number += addition;
+        while (number != 1) {
+            result.back().push_back(least_prime[number]);
+            number /= least_prime[number];
+        }
     }
-
     return result;
 }
 
@@ -117,28 +137,34 @@ std::vector<uint64_t> factorize(uint64_t number) {
  * @param p Модуль поля.
  * @return Минимальный генератор.
  */
-uint64_t find_min_generator(const uint64_t p) {
-    auto factors = factorize(p - 1);  // факторизуем p-1
+std::vector<uint64_t> find_min_generators(const std::vector<uint64_t> &modules) {
+    auto all_factors = factorize(modules, -1);  // факторизуем p-1
 
-    for (uint64_t g = 2; g < p; ++g) {
-        bool success = true;
-        uint64_t current_factor = 0;
-        for (auto factor : factors) {
-            if (current_factor != factor)  // не проверяем дважды один и тот же делитель
-            {
-                const auto gpd = binpow(g, (p - 1) / factor, p);  // проверяем минимально необходимый набор делителей
-                if (gpd == 1) {
-                    success = false;  // g - не генератор
+    std::vector<uint64_t> generators;
+    for (size_t i = 0; i < modules.size(); ++i) {
+        const auto p = modules[i];
+        const auto &factors = all_factors[i];
+        for (uint64_t g = 2; g < p; ++g) {
+            bool success = true;
+            uint64_t current_factor = 0;
+            for (auto factor : factors) {
+                if (current_factor != factor)  // не проверяем дважды один и тот же делитель
+                {
+                    const auto gpd = binpow(g, (p - 1) / factor,
+                                            p);  // проверяем минимально необходимый набор делителей
+                    if (gpd == 1) {
+                        success = false;  // g - не генератор
+                    }
+                    current_factor = factor;
                 }
-                current_factor = factor;
+            }
+            if (success) {
+                generators.push_back(g);  // нашли генератор
+                break;
             }
         }
-        if (success) {
-            return g;  // нашли генератор
-        }
     }
-    assert(false);
-    return 0;
+    return generators;
 }
 
 /**
@@ -181,13 +207,16 @@ std::optional<uint64_t> discrete_logarithm(const uint64_t a, const uint64_t b, c
  * @param a Показатель степени.
  * @param b Значение возведения в степень.
  * @param n Модуль поля.
+ * @param g Генератор поля.
  * @return Значение логарифма, если оно существует.
  */
-std::optional<uint64_t> discrete_sqrt(const uint64_t a, const uint64_t b, const uint64_t n) {
+std::optional<uint64_t> discrete_sqrt(const uint64_t a, const uint64_t b, const uint64_t n, uint64_t g = 0) {
     if (b == 0) {
         return 0;
     }
-    auto g = find_min_generator(n);
+    if (g == 0) {
+        g = find_min_generators({n})[0];
+    }
     auto gpa = binpow(g, a, n);
     auto y = discrete_logarithm(gpa, b, n);
     if (y.has_value()) {
@@ -280,19 +309,22 @@ int main(int argc, char *argv[]) {
     // Чтение входных данных
     size_t T{0};
     std::cin >> T;
-    std::vector<std::tuple<uint64_t, uint64_t, uint64_t>> tests;
-    tests.reserve(T);
+    std::vector<std::tuple<uint64_t, uint64_t>> equations;
+    std::vector<uint64_t> modules;
+    equations.reserve(T);
     for (size_t i = 0; i < T; ++i) {
         uint64_t a, b, n{0};
         std::cin >> b >> a >> n;
-        tests.push_back({a, b, n});
+        equations.emplace_back(a, b);
+        modules.push_back(n);
     }
 
+    auto generators = find_min_generators(modules);
     std::vector<std::optional<uint64_t>> results;
     results.reserve(T);
-    for (const auto &test : tests) {
-        auto[a, b, n] = test;
-        results.push_back(discrete_sqrt(a, b, n));
+    for (size_t i = 0; i < equations.size(); ++i) {
+        auto[a, b] = equations[i];
+        results.push_back(discrete_sqrt(a, b, modules[i], generators[i]));
     }
 
     // Запись результата

@@ -44,8 +44,10 @@
  * @return Произведение по модулю.
  */
 uint64_t binprod(uint64_t a, uint64_t b, uint64_t module) {
-    if (a == 0 || b == 0)
+    if (a == 0 || b == 0) {
         return 0;
+    }
+    assert(module!=1);
     if (b % 2 == 1)
         return (binprod(a, b - 1, module) + a) % module;
     else {
@@ -108,6 +110,16 @@ uint64_t binpow_large(uint64_t a, uint64_t b, uint64_t module) {
  * @return Результат возведения в степень.
  */
 uint64_t binpow(uint64_t a, uint64_t b, uint64_t module) {
+    assert(!(a == 0 && b == 0));
+    if (a == 0)
+    {
+        return 0;
+    }
+    if (b == 0)
+    {
+        return 1;
+    }
+    assert(module!=1);
     if (a<1000000000ULL)
     {
         return binpow_small(a, b, module);
