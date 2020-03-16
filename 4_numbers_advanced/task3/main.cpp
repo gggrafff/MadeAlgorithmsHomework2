@@ -118,6 +118,57 @@ uint64_t binpow(uint64_t a, uint64_t b, uint64_t module) {
 }
 
 /**
+ * @brief Факторизация числа перебором делителей.
+ * @param number Число, которое нужно факторизовать.
+ * @return Массив простых делителей.
+ */
+std::vector<uint64_t> factorize(uint64_t number) {
+  std::vector<uint64_t> result;
+
+  for (uint64_t i = 2; i <= sqrt(number); i++) {
+    while (number % i == 0) {
+      result.push_back(i);
+      number /= i;
+    }
+  }
+
+  if (number != 1) {
+    result.push_back(number);
+  }
+
+  return result;
+}
+
+/**
+ * @brief Поиск минимального первообразного корня по модулю p.
+ * @param p Модуль поля.
+ * @return Минимальный генератор.
+ */
+uint64_t find_min_generator(const uint64_t p) {
+  auto factors = factorize(p - 1);  // факторизуем p-1
+
+  for (uint64_t g = 2; g < p; ++g) {
+    bool success = true;
+    uint64_t current_factor = 0;
+    for (auto factor : factors) {
+      if (current_factor != factor)  // не проверяем дважды один и тот же делитель
+      {
+        const auto gpd = binpow(g, (p - 1) / factor, p);  // проверяем минимально необходимый набор делителей
+        if (gpd == 1) {
+          success = false;  // g - не генератор
+        }
+        current_factor = factor;
+      }
+    }
+    if (success) {
+      return g;  // нашли генератор
+    }
+  }
+  assert(false);
+  return 0;
+}
+
+/**
  * @brief Поиск дискретного логарифма в конечном поле по модулю.
  * @param a Основание логарифма.
  * @param b Число под логарифмом.
@@ -125,52 +176,70 @@ uint64_t binpow(uint64_t a, uint64_t b, uint64_t module) {
  * @return Значение логарифма, если оно существует.
  */
 std::optional<uint64_t> discrete_logarithm(const uint64_t a, const uint64_t b, const uint64_t n) {
-    auto k = static_cast<uint64_t>(std::sqrt(n) + 1);
-    auto ak = binpow(a, k, n);
-    while (ak == 1) {
-        ++k;
-        ak = binpow(a, k, n);
+  auto k = static_cast<uint64_t>(std::sqrt(n) + 1);
+  auto ak = binpow(a, k, n);
+  while (ak == 1) {
+    ++k;
+    ak = binpow(a, k, n);
+  }
+  uint64_t current_aik = 1;
+  std::map<uint64_t, size_t> apk;
+  for (size_t r = 1; r <= k; ++r) {
+    current_aik = binprod(current_aik, ak, n);
+    apk[current_aik] = r;
+  }
+  uint64_t current_bai = b;
+  for (size_t s = 1; s <= k; ++s) {
+    current_bai = binprod(current_bai, a, n);
+    auto r_iter = apk.find(current_bai);
+    if (r_iter != apk.end()) {
+      const auto r = r_iter->second;
+      const auto x = r * k - s;
+      if (x < n) {
+        return x;
+      }
     }
-    uint64_t current_aik = 1;
-    std::map<uint64_t, size_t> apk;
-    for (size_t r = 1; r <= k; ++r) {
-        current_aik = binprod(current_aik, ak, n);
-        apk[current_aik] = r;
-    }
-    uint64_t current_bai = b;
-    for (size_t s = 1; s <= k; ++s) {
-        current_bai = binprod(current_bai, a, n);
-        auto r_iter = apk.find(current_bai);
-        if (r_iter != apk.end()) {
-            const auto r = r_iter->second;
-            const auto x = r * k - s;
-            if (x < n) {
-                return x;
-            }
-        }
-    }
-    return std::nullopt;
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Поиск дискретного корня в конечном поле по модулю. x^a=b (mod n)
+ * @param a Показатель степени.
+ * @param b Значение возведения в степень.
+ * @param n Модуль поля.
+ * @return Значение логарифма, если оно существует.
+ */
+std::optional<uint64_t> discrete_sqrt(const uint64_t a, const uint64_t b, const uint64_t n) {
+  if (b == 0)     {
+    return 0;
+  }
+  auto g = find_min_generator(n);
+  auto gpa = binpow(g, a, n);
+  auto y = discrete_logarithm(gpa, b, n);
+  if (y.has_value())     {
+    auto x = binpow(g, y.value(), n);
+    return x;
+  }
+  return std::nullopt;
 }
 
 // Начало тестов
 
-void test_from_task_1() {
-    uint64_t a = 2;
+void test_from_task() {
+    uint64_t a = 3;
     uint64_t b = 4;
-    uint64_t n = 7;
-    auto result = discrete_logarithm(a, b, n);
+    uint64_t n = 5;
+    auto result = discrete_sqrt(a, b, n);
     assert(result.has_value());
-    assert(binpow(a, result.value(), n) == b);
+    assert(binpow(result.value(), a, n) == b);
     assert(result.value() < n);
-}
-
-void test_from_task_2() {
-    uint64_t a = 41;
-    uint64_t b = 145;
-    uint64_t n = 239;
-    auto result = discrete_logarithm(a, b, n);
+    a = 3;
+    b = 1;
+    n = 7;
+    result = discrete_sqrt(a, b, n);
     assert(result.has_value());
-    assert(binpow(a, result.value(), n) == b);
+    assert(binpow(result.value(), a, n) == b);
     assert(result.value() < n);
 }
 
@@ -213,8 +282,7 @@ void test_binpow() {
 }
 
 void run_all_tests() {
-    test_from_task_1();
-    test_from_task_2();
+    test_from_task();
     test_binprod();
     test_binpow();
 }
@@ -222,6 +290,8 @@ void run_all_tests() {
 // Конец тестов
 
 int main(int argc, char *argv[]) {
+  //run_all_tests();
+  //return 0;
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
     std::cout.tie(nullptr);
@@ -235,16 +305,32 @@ int main(int argc, char *argv[]) {
     }
 
     // Чтение входных данных
-    uint64_t a, b, n{0};
-    std::cin >> a >> b >> n;
-
-    auto result = discrete_logarithm(a, b, n);
+    size_t T{ 0 };
+    std::cin >> T;
+    std::vector<std::tuple<uint64_t, uint64_t, uint64_t>> tests;
+    tests.reserve(T);
+    for (size_t i = 0; i < T; ++i)       {
+      uint64_t a, b, n{ 0 };
+      std::cin >> b >> a >> n;
+      tests.push_back({a, b, n});
+    }
+    
+    std::vector<std::optional<uint64_t>> results;
+    results.reserve(T);
+    for (const auto& test : tests)       {
+      auto [a, b, n] = test;
+      results.push_back(discrete_sqrt(a, b, n));
+    }
 
     // Запись результата
-    if (result.has_value()) {
+    for (const auto& result : results) {
+      if (result.has_value()) {
         std::cout << result.value();
-    } else {
+      }
+      else {
         std::cout << -1;
+      }
+      std::cout << "\n";
     }
 
     return 0;
