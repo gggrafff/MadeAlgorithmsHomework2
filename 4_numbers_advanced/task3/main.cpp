@@ -43,7 +43,6 @@ uint64_t binpow_small(uint64_t a, uint64_t b, uint64_t module) {
         if (b & 1) {
             res *= a;
             res %= module;
-            --b;
         }
         a *= a;
         a %= module;
@@ -66,7 +65,6 @@ uint64_t binpow_large(uint64_t a, uint64_t b, uint64_t module) {
     while (b > 0) {
         if (b & 1) {
             res = binprod(res, a, module);
-            --b;
         }
         a = binprod(a, a, module);
         b >>= 1;
@@ -112,13 +110,47 @@ std::vector<uint64_t> factorize(uint64_t number) {
     return result;
 }
 
+uint64_t euler_function(const std::vector<uint64_t>& factors) {
+  uint64_t euler = 1;
+  for (size_t i = 0; i < eulers.size(); ++i) {
+    if (numbers[i] <= 2) {
+      eulers[i] = 1;
+      continue;
+    }
+    auto current_factor = factors[i][0];
+    auto current_power = 1;
+    for (size_t j = 1; j < factors[i].size(); ++j) {
+      if (factors[i][j] == current_factor) {
+        current_power += 1;
+      }
+      else {
+        eulers[i] *= (current_factor - 1);
+        for (auto p = 1; p < current_power; ++p) {
+          eulers[i] *= current_factor;
+        }
+        current_factor = factors[i][j];
+        current_power = 1;
+      }
+    }
+    eulers[i] *= (current_factor - 1);
+    for (auto p = 1; p < current_power; ++p) {
+      eulers[i] *= current_factor;
+    }
+  }
+  return eulers;
+}
+
 /**
  * @brief Поиск минимального первообразного корня по модулю p.
  * @param p Модуль поля.
  * @return Минимальный генератор.
  */
 uint64_t find_min_generator(const uint64_t p) {
-    auto factors = factorize(p - 1);  // факторизуем p-1
+  if (p==2) {
+    return 1;
+  }
+  const auto phi = p - 1;
+    auto factors = factorize(phi);  // факторизуем p-1
 
     for (uint64_t g = 2; g < p; ++g) {
         bool success = true;
@@ -149,11 +181,20 @@ uint64_t find_min_generator(const uint64_t p) {
  * @return Значение логарифма, если оно существует.
  */
 std::optional<uint64_t> discrete_logarithm(const uint64_t a, const uint64_t b, const uint64_t n) {
+    if (a == b) {
+      return 1;
+    }
+    if (b == 1) {
+      return 0;
+    }
     auto k = static_cast<uint64_t>(std::sqrt(n) + 1);
     auto ak = binpow(a, k, n);
     while (ak == 1) {
         ++k;
         ak = binpow(a, k, n);
+        if (k>=n) {
+          return std::nullopt;
+        }
     }
     uint64_t current_aik = 1;
     std::map<uint64_t, size_t> apk;
@@ -184,14 +225,15 @@ std::optional<uint64_t> discrete_logarithm(const uint64_t a, const uint64_t b, c
  * @return Значение логарифма, если оно существует.
  */
 std::optional<uint64_t> discrete_sqrt(const uint64_t a, const uint64_t b, const uint64_t n) {
+    assert(a != 0 || (a == 0 && b == 1));
     if (b == 0) {
         return 0;
     }
     auto g = find_min_generator(n);
-    auto gpa = binpow(g, a, n);
+    const auto gpa = binpow(g, a, n);
     auto y = discrete_logarithm(gpa, b, n);
     if (y.has_value()) {
-        auto x = binpow(g, y.value(), n);
+      const auto x = binpow(g, y.value(), n);
         return x;
     }
     return std::nullopt;
@@ -214,6 +256,56 @@ void test_from_task() {
     assert(result.has_value());
     assert(binpow(result.value(), a, n) == b);
     assert(result.value() < n);
+}
+
+void test_module7() {
+  uint64_t a = 0;
+  uint64_t b = 1;
+  uint64_t n = 7;
+  auto result = discrete_sqrt(a, b, n);
+  assert(result.has_value());
+  assert(binpow(result.value(), a, n) == b);
+  assert(result.value() < n);
+  a = 1; b = 3; n = 7;
+  result = discrete_sqrt(a, b, n);
+  assert(result.has_value());
+  assert(binpow(result.value(), a, n) == b);
+  assert(result.value() < n);
+  a = 2; b = 2; n = 7;
+  result = discrete_sqrt(a, b, n);
+  assert(result.has_value());
+  assert(binpow(result.value(), a, n) == b);
+  assert(result.value() < n);
+  a = 3; b = 6; n = 7;
+  result = discrete_sqrt(a, b, n);
+  assert(result.has_value());
+  assert(binpow(result.value(), a, n) == b);
+  assert(result.value() < n);
+  a = 4; b = 4; n = 7;
+  result = discrete_sqrt(a, b, n);
+  assert(result.has_value());
+  assert(binpow(result.value(), a, n) == b);
+  assert(result.value() < n);
+  a = 5; b = 5; n = 7;
+  result = discrete_sqrt(a, b, n);
+  assert(result.has_value());
+  assert(binpow(result.value(), a, n) == b);
+  assert(result.value() < n);
+  a = 6; b = 1; n = 7;
+  result = discrete_sqrt(a, b, n);
+  assert(result.has_value());
+  assert(binpow(result.value(), a, n) == b);
+  assert(result.value() < n);
+}
+
+void test_module2() {
+  uint64_t a = 1;
+  uint64_t b = 1;
+  uint64_t n = 2;
+  auto result = discrete_sqrt(a, b, n);
+  assert(result.has_value());
+  assert(binpow(result.value(), a, n) == b);
+  assert(result.value() < n);
 }
 
 void test_binprod() {
@@ -254,8 +346,21 @@ void test_binpow() {
     assert(result == 407240682858);
 }
 
+void test_find_min_generator() {
+  std::vector<uint64_t> modules   { 2, 3, 4, 5, 6, 7, 9, 10, 11, 13, 14 };
+  std::vector<uint64_t> generators{ 1, 2, 3, 2, 5, 3, 2, 3, 2, 2, 3 };
+  assert(modules.size() == generators.size());
+  for (size_t i = 0; i< modules.size(); ++i) {
+    auto g = find_min_generator(modules[i]);
+    assert(g == generators[i]);
+  }
+}
+
 void run_all_tests() {
+    test_find_min_generator();
     test_from_task();
+    test_module7();
+    test_module2();
     test_binprod();
     test_binpow();
 }
@@ -263,8 +368,8 @@ void run_all_tests() {
 // Конец тестов
 
 int main(int argc, char *argv[]) {
-    //run_all_tests();
-    //return 0;
+  run_all_tests();
+  return 0;
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
     std::cout.tie(nullptr);
@@ -285,13 +390,13 @@ int main(int argc, char *argv[]) {
     for (size_t i = 0; i < T; ++i) {
         uint64_t a, b, n{0};
         std::cin >> b >> a >> n;
-        tests.push_back({a, b, n});
+        tests.emplace_back(a, b, n);
     }
 
     std::vector<std::optional<uint64_t>> results;
     results.reserve(T);
     for (const auto &test : tests) {
-        auto[a, b, n] = test;
+      const auto& [a, b, n] = test;
         results.push_back(discrete_sqrt(a, b, n));
     }
 
