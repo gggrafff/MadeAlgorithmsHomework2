@@ -110,35 +110,6 @@ std::vector<uint64_t> factorize(uint64_t number) {
     return result;
 }
 
-uint64_t euler_function(const std::vector<uint64_t>& factors) {
-  uint64_t euler = 1;
-  for (size_t i = 0; i < eulers.size(); ++i) {
-    if (numbers[i] <= 2) {
-      eulers[i] = 1;
-      continue;
-    }
-    auto current_factor = factors[i][0];
-    auto current_power = 1;
-    for (size_t j = 1; j < factors[i].size(); ++j) {
-      if (factors[i][j] == current_factor) {
-        current_power += 1;
-      }
-      else {
-        eulers[i] *= (current_factor - 1);
-        for (auto p = 1; p < current_power; ++p) {
-          eulers[i] *= current_factor;
-        }
-        current_factor = factors[i][j];
-        current_power = 1;
-      }
-    }
-    eulers[i] *= (current_factor - 1);
-    for (auto p = 1; p < current_power; ++p) {
-      eulers[i] *= current_factor;
-    }
-  }
-  return eulers;
-}
 
 /**
  * @brief Поиск минимального первообразного корня по модулю p.
@@ -347,8 +318,8 @@ void test_binpow() {
 }
 
 void test_find_min_generator() {
-  std::vector<uint64_t> modules   { 2, 3, 4, 5, 6, 7, 9, 10, 11, 13, 14 };
-  std::vector<uint64_t> generators{ 1, 2, 3, 2, 5, 3, 2, 3, 2, 2, 3 };
+  std::vector<uint64_t> modules { 2, 3, 5, 7, 11, 13 };
+  std::vector<uint64_t> generators { 1, 2, 2, 3, 2, 2 };
   assert(modules.size() == generators.size());
   for (size_t i = 0; i< modules.size(); ++i) {
     auto g = find_min_generator(modules[i]);
@@ -368,8 +339,8 @@ void run_all_tests() {
 // Конец тестов
 
 int main(int argc, char *argv[]) {
-  run_all_tests();
-  return 0;
+  //run_all_tests();
+  //return 0;
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
     std::cout.tie(nullptr);

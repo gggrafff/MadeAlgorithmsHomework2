@@ -48,6 +48,11 @@ set(CMAKE_MAKEFILE_DEPENDS
   "3_numbers/task3/CMakeLists.txt"
   "3_numbers/task4/CMakeLists.txt"
   "3_numbers/task5/CMakeLists.txt"
+  "4_numbers_advanced/CMakeLists.txt"
+  "4_numbers_advanced/task1/CMakeLists.txt"
+  "4_numbers_advanced/task2/CMakeLists.txt"
+  "4_numbers_advanced/task3/CMakeLists.txt"
+  "4_numbers_advanced/task3_mass/CMakeLists.txt"
   "CMakeFiles/3.16.3/CMakeCCompiler.cmake"
   "CMakeFiles/3.16.3/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.16.3/CMakeSystem.cmake"
@@ -82,6 +87,11 @@ set(CMAKE_MAKEFILE_PRODUCTS
   "3_numbers/task3/CMakeFiles/CMakeDirectoryInformation.cmake"
   "3_numbers/task4/CMakeFiles/CMakeDirectoryInformation.cmake"
   "3_numbers/task5/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "4_numbers_advanced/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "4_numbers_advanced/task1/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "4_numbers_advanced/task2/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "4_numbers_advanced/task3/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "4_numbers_advanced/task3_mass/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
@@ -102,4 +112,8 @@ set(CMAKE_DEPEND_INFO_FILES
   "3_numbers/task3/CMakeFiles/task3_3.dir/DependInfo.cmake"
   "3_numbers/task4/CMakeFiles/task3_4.dir/DependInfo.cmake"
   "3_numbers/task5/CMakeFiles/task3_5.dir/DependInfo.cmake"
+  "4_numbers_advanced/task1/CMakeFiles/task4_1.dir/DependInfo.cmake"
+  "4_numbers_advanced/task2/CMakeFiles/task4_2.dir/DependInfo.cmake"
+  "4_numbers_advanced/task3/CMakeFiles/task4_3.dir/DependInfo.cmake"
+  "4_numbers_advanced/task3_mass/CMakeFiles/task4_3_mass.dir/DependInfo.cmake"
   )
