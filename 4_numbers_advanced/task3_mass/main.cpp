@@ -46,7 +46,6 @@ uint64_t binpow_small(uint64_t a, uint64_t b, uint64_t module) {
         if (b & 1) {
             res *= a;
             res %= module;
-            --b;
         }
         a *= a;
         a %= module;
@@ -69,7 +68,6 @@ uint64_t binpow_large(uint64_t a, uint64_t b, uint64_t module) {
     while (b > 0) {
         if (b & 1) {
             res = binprod(res, a, module);
-            --b;
         }
         a = binprod(a, a, module);
         b >>= 1;
@@ -104,6 +102,9 @@ uint64_t binpow(uint64_t a, uint64_t b, uint64_t module) {
 
 std::vector<std::vector<uint64_t>> factorize(const std::vector<uint64_t> &numbers, const int8_t addition) {
     uint64_t max_number = *std::max_element(numbers.begin(), numbers.end()) + addition;
+    if (max_number < 2) {
+        max_number = 2;
+    }
     std::vector<uint64_t> primes;
     std::vector<uint64_t> least_prime(max_number + 1, 0);
 
@@ -124,7 +125,7 @@ std::vector<std::vector<uint64_t>> factorize(const std::vector<uint64_t> &number
     for (auto number: numbers) {
         result.emplace_back();
         number += addition;
-        while (number != 1) {
+        while (number > 1) {
             result.back().push_back(least_prime[number]);
             number /= least_prime[number];
         }
@@ -143,15 +144,18 @@ std::vector<uint64_t> find_min_generators(const std::vector<uint64_t> &modules) 
     std::vector<uint64_t> generators;
     for (size_t i = 0; i < modules.size(); ++i) {
         const auto p = modules[i];
+        if (p == 2) {
+            generators.push_back(1);  // нашли генератор
+            continue;
+        }
         const auto &factors = all_factors[i];
         for (uint64_t g = 2; g < p; ++g) {
             bool success = true;
             uint64_t current_factor = 0;
-            for (auto factor : factors) {
+            for (auto factor: factors) {
                 if (current_factor != factor)  // не проверяем дважды один и тот же делитель
                 {
-                    const auto gpd = binpow(g, (p - 1) / factor,
-                                            p);  // проверяем минимально необходимый набор делителей
+                    const auto gpd = binpow(g, (p - 1) / factor, p);  // проверяем минимально необходимый набор делителей
                     if (gpd == 1) {
                         success = false;  // g - не генератор
                     }
@@ -164,6 +168,7 @@ std::vector<uint64_t> find_min_generators(const std::vector<uint64_t> &modules) 
             }
         }
     }
+    assert(generators.size() == modules.size());
     return generators;
 }
 
@@ -175,11 +180,20 @@ std::vector<uint64_t> find_min_generators(const std::vector<uint64_t> &modules) 
  * @return Значение логарифма, если оно существует.
  */
 std::optional<uint64_t> discrete_logarithm(const uint64_t a, const uint64_t b, const uint64_t n) {
+    if (a == b) {
+        return 1;
+    }
+    if (b == 1) {
+        return 0;
+    }
     auto k = static_cast<uint64_t>(std::sqrt(n) + 1);
     auto ak = binpow(a, k, n);
     while (ak == 1) {
         ++k;
         ak = binpow(a, k, n);
+        if (k >= n) {
+            return std::nullopt;
+        }
     }
     uint64_t current_aik = 1;
     std::map<uint64_t, size_t> apk;
@@ -211,6 +225,7 @@ std::optional<uint64_t> discrete_logarithm(const uint64_t a, const uint64_t b, c
  * @return Значение логарифма, если оно существует.
  */
 std::optional<uint64_t> discrete_sqrt(const uint64_t a, const uint64_t b, const uint64_t n, uint64_t g = 0) {
+    assert(a != 0 || (a == 0 && b == 1));
     if (b == 0) {
         return 0;
     }
@@ -283,11 +298,93 @@ void test_binpow() {
     assert(result == 407240682858);
 }
 
+void test_module7() {
+    uint64_t a = 0;
+    uint64_t b = 1;
+    uint64_t n = 7;
+    auto result = discrete_sqrt(a, b, n);
+    assert(result.has_value());
+    assert(binpow(result.value(), a, n) == b);
+    assert(result.value() < n);
+    a = 1;
+    b = 3;
+    n = 7;
+    result = discrete_sqrt(a, b, n);
+    assert(result.has_value());
+    assert(binpow(result.value(), a, n) == b);
+    assert(result.value() < n);
+    a = 2;
+    b = 2;
+    n = 7;
+    result = discrete_sqrt(a, b, n);
+    assert(result.has_value());
+    assert(binpow(result.value(), a, n) == b);
+    assert(result.value() < n);
+    a = 3;
+    b = 6;
+    n = 7;
+    result = discrete_sqrt(a, b, n);
+    assert(result.has_value());
+    assert(binpow(result.value(), a, n) == b);
+    assert(result.value() < n);
+    a = 4;
+    b = 4;
+    n = 7;
+    result = discrete_sqrt(a, b, n);
+    assert(result.has_value());
+    assert(binpow(result.value(), a, n) == b);
+    assert(result.value() < n);
+    a = 5;
+    b = 5;
+    n = 7;
+    result = discrete_sqrt(a, b, n);
+    assert(result.has_value());
+    assert(binpow(result.value(), a, n) == b);
+    assert(result.value() < n);
+    a = 6;
+    b = 1;
+    n = 7;
+    result = discrete_sqrt(a, b, n);
+    assert(result.has_value());
+    assert(binpow(result.value(), a, n) == b);
+    assert(result.value() < n);
+}
+
+void test_module2() {
+    uint64_t a = 1;
+    uint64_t b = 1;
+    uint64_t n = 2;
+    auto result = discrete_sqrt(a, b, n);
+    assert(result.has_value());
+    assert(binpow(result.value(), a, n) == b);
+    assert(result.value() < n);
+}
+
+void test_find_min_generator() {
+    std::vector<uint64_t> modules{2, 3, 5, 7, 11, 13};
+    std::vector<uint64_t> generators{1, 2, 2, 3, 2, 2};
+    assert(modules.size() == generators.size());
+    auto result = find_min_generators(modules);
+    assert(result == generators);
+}
+
+void test_factorize() {
+    std::vector<uint64_t> modules{2, 3, 5, 7, 11, 13};
+    auto all_factors = factorize(modules, -1);
+    assert(all_factors[0].empty());
+}
+
 void run_all_tests() {
     test_from_task();
     test_binprod();
     test_binpow();
+    test_module7();
+    test_module2();
+    test_factorize();
+    test_find_min_generator();
 }
+
+
 
 // Конец тестов
 
