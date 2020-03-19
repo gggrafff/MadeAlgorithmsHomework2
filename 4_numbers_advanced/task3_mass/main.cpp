@@ -100,7 +100,7 @@ uint64_t binpow(uint64_t a, uint64_t b, uint64_t module) {
 }
 
 
-std::vector<std::vector<uint64_t>> factorize(const std::vector<uint64_t> &numbers, const int8_t addition) {
+std::vector<std::vector<uint64_t>> factorize_eratosthenes(const std::vector<uint64_t> &numbers, const int8_t addition) {
     uint64_t max_number = *std::max_element(numbers.begin(), numbers.end()) + addition;
     if (max_number < 2) {
         max_number = 2;
@@ -133,13 +133,42 @@ std::vector<std::vector<uint64_t>> factorize(const std::vector<uint64_t> &number
     return result;
 }
 
+std::vector<std::vector<uint64_t>> factorize_exhaustion(std::vector<uint64_t> numbers, const int8_t addition) {
+  std::vector<std::vector<uint64_t>> result(numbers.size());
+
+  std::transform(numbers.begin(), numbers.end(), numbers.begin(), [addition](auto value) {return value + addition; });
+
+  uint64_t max_number = *std::max_element(numbers.begin(), numbers.end()) + addition;
+  if (max_number < 2) {
+    max_number = 2;
+  }
+
+  for (uint64_t i = 2; i <= sqrt(max_number); i++) {
+    for (size_t j = 0; j < numbers.size(); ++j) {
+      while (numbers[j] % i == 0) {
+        result[j].push_back(i);
+        numbers[j] /= i;
+      }
+    }
+  }
+
+  for (size_t j = 0; j < numbers.size(); ++j) {
+    if (numbers[j] != 1) {
+      result[j].push_back(numbers[j]);
+    }
+  }
+
+  return result;
+}
+
+
 /**
  * @brief Поиск минимального первообразного корня по модулю p.
  * @param p Модуль поля.
  * @return Минимальный генератор.
  */
 std::vector<uint64_t> find_min_generators(const std::vector<uint64_t> &modules) {
-    auto all_factors = factorize(modules, -1);  // факторизуем p-1
+    auto all_factors = factorize_exhaustion(modules, -1);  // факторизуем p-1
 
     std::vector<uint64_t> generators;
     for (size_t i = 0; i < modules.size(); ++i) {
@@ -351,9 +380,9 @@ void test_module7() {
 }
 
 void test_module2() {
-    uint64_t a = 1;
-    uint64_t b = 1;
-    uint64_t n = 2;
+  const uint64_t a = 1;
+  const uint64_t b = 1;
+  const uint64_t n = 2;
     auto result = discrete_sqrt(a, b, n);
     assert(result.has_value());
     assert(binpow(result.value(), a, n) == b);
@@ -361,18 +390,70 @@ void test_module2() {
 }
 
 void test_find_min_generator() {
-    std::vector<uint64_t> modules{2, 3, 5, 7, 11, 13};
-    std::vector<uint64_t> generators{1, 2, 2, 3, 2, 2};
+  const std::vector<uint64_t> modules{2, 3, 5, 7, 11, 13};
+  const std::vector<uint64_t> generators{1, 2, 2, 3, 2, 2};
     assert(modules.size() == generators.size());
-    auto result = find_min_generators(modules);
+  const auto result = find_min_generators(modules);
     assert(result == generators);
 }
 
 void test_factorize() {
     std::vector<uint64_t> modules{2, 3, 5, 7, 11, 13};
-    auto all_factors = factorize(modules, -1);
-    assert(all_factors[0].empty());
+    auto all_factors_1 = factorize_eratosthenes(modules, -1);
+    auto all_factors_2 = factorize_exhaustion(modules, -1);
+    assert(all_factors_1 == all_factors_2);
 }
+
+/**
+* @brief Проверка числа на простоту перебором делителей.
+* @param x Проверяем число.
+* @return true, если простое, иначе - false.
+*/
+bool is_prime(uint64_t x) {
+  for (int i = 2; i <= sqrt(x); i++) {
+    if (x % i == 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void test_random_root() {
+  std::random_device rd;  //Will be used to obtain a seed for the random number engine
+  std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+  std::uniform_int_distribution<> numbers_generator_big(1, 1000);
+  for (auto i = 0; i < 1000; ++i) {
+    uint64_t n = numbers_generator_big(gen) + 1;
+    while(!is_prime(n)) {
+      n = numbers_generator_big(gen) + 1;
+    }
+    const uint64_t a = numbers_generator_big(gen) % n + 1;
+    uint64_t b = numbers_generator_big(gen) % n + 1;
+    while (a == 0 && b == 0) {
+      b = numbers_generator_big(gen) % n + 1;
+    }
+    auto result = discrete_sqrt(a, b, n);
+    if (result.has_value()) {
+      assert(binpow(result.value(), a, n) == b);
+      assert(result.value() < n);
+    }
+  }
+}
+
+void test_root() {
+  auto result = discrete_sqrt(1, 0, 7);
+  assert(result == 0);
+  result = discrete_sqrt(4, 0, 7);
+  assert(result == 0);
+  result = discrete_sqrt(0, 1, 7);
+  assert(result.has_value());
+  result = discrete_sqrt(0, 1, 7);
+  assert(result.has_value());
+  result = discrete_sqrt(37, 61, 113);
+  assert(result == 91);
+  result = discrete_sqrt(100000000001, 407240682858, 999999999999);
+}
+
 
 void run_all_tests() {
     test_from_task();
@@ -382,6 +463,8 @@ void run_all_tests() {
     test_module2();
     test_factorize();
     test_find_min_generator();
+    test_random_root();
+    test_root();
 }
 
 

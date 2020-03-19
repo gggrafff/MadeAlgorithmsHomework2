@@ -24,7 +24,7 @@ uint64_t binprod(uint64_t a, uint64_t b, uint64_t module) {
     if (b % 2 == 1)
         return (binprod(a, b - 1, module) + a) % module;
     else {
-        auto half_prod = binprod(a, b / 2, module);
+      const auto half_prod = binprod(a, b / 2, module);
         return (half_prod + half_prod) % module;
     }
 }
@@ -173,7 +173,7 @@ std::optional<uint64_t> discrete_logarithm(const uint64_t a, const uint64_t b, c
         current_aik = binprod(current_aik, ak, n);
         apk[current_aik] = r;
     }
-    uint64_t current_bai = b;
+    auto current_bai = b;
     for (size_t s = 1; s <= k; ++s) {
         current_bai = binprod(current_bai, a, n);
         auto r_iter = apk.find(current_bai);
@@ -282,9 +282,9 @@ void test_module7() {
 }
 
 void test_module2() {
-    uint64_t a = 1;
-    uint64_t b = 1;
-    uint64_t n = 2;
+  const uint64_t a = 1;
+  const uint64_t b = 1;
+  const uint64_t n = 2;
     auto result = discrete_sqrt(a, b, n);
     assert(result.has_value());
     assert(binpow(result.value(), a, n) == b);
