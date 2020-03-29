@@ -132,9 +132,9 @@ class SparseTable {
 public:
     SparseTable(const std::vector<SequenceType> &numbers) {
         ceil_lb_ = calculate_ceil_lb(numbers.size() + 1);
-        sparse_table_ = std::vector<std::vector<SequenceType>>(
-                numbers.size(),
-                std::vector<SequenceType>(ceil_lb_.back(), std::numeric_limits<SequenceType>::max()));
+        sparse_table_.resize(numbers.size(), std::vector<SequenceType>(
+                ceil_lb_.back(),
+                std::numeric_limits<SequenceType>::max()));
         for (auto l = 0; l < sparse_table_.size(); ++l) {
             sparse_table_[l].front() = numbers[l];
         }
@@ -169,7 +169,7 @@ private:
     void dynamics_initialize() {
         for (auto k = 1; k < sparse_table_[0].size(); ++k) {
             for (auto l = 0; l < sparse_table_.size(); ++l) {
-                auto right = l + (1 << k);
+                auto right = l + (1 << (k - 1));
                 if (right >= sparse_table_.size()) {
                     break;
                 }
@@ -185,6 +185,9 @@ private:
 std::tuple<size_t, size_t, uint32_t> solve_task(
         size_t n, size_t m, uint32_t a1,
         size_t u1, size_t v1) {
+    if (n == 1) {
+        return {1, 1, a1};
+    }
     SequenceGenerator<uint16_t, uint32_t> array_generator(23, 21563, a1, 16714589);
     SparseTable<uint32_t> min_table(array_generator, n);
     SequenceGenerator<size_t, size_t> u_generator(17, 751, u1 - 1, n);
@@ -198,6 +201,20 @@ std::tuple<size_t, size_t, uint32_t> solve_task(
 }
 
 // Начало тестов
+
+void test_one_element() {
+    auto[u, v, r] = solve_task(1, 8, 12345, 1, 1);
+    assert(u == 1);
+    assert(v == 1);
+    assert(r == 12345);
+}
+
+void test_one_request() {
+    auto[u, v, r] = solve_task(10, 1, 12345, 3, 9);
+    assert(u == 3);
+    assert(v == 9);
+    assert(r == 570265);
+}
 
 void test_from_task() {
     auto[u, v, r] = solve_task(10, 8, 12345, 3, 9);
@@ -214,9 +231,35 @@ void test_sequence_generator() {
     assert(result == true_result);
 }
 
+void test_sparse_table() {
+    SequenceGenerator<uint16_t, uint32_t> array_generator(23, 21563, 12345, 16714589);
+    size_t n = 1000;
+    auto sequence = array_generator.get_sequence(n);
+    SparseTable min_table(sequence);
+    SequenceGenerator<size_t, size_t> u_generator(17, 751, 3 - 1, n);
+    SequenceGenerator<size_t, size_t> v_generator(13, 593, 9 - 1, n);
+    auto r_current = min_table.get_min(3 - 1, 9 - 1);
+    auto r_current_true = *std::min_element(std::next(sequence.begin(), 3 - 1), std::next(sequence.begin(), 9 - 1 + 1));
+    assert(r_current == r_current_true);
+    for (size_t i = 0; i < 1000; ++i) {
+        auto u = u_generator.next(0, r_current + 2 * i, 1);
+        auto v = v_generator.next(0, r_current + 5 * i, 1);
+        if (u > v)
+        {
+            std::swap(u, v);
+        }
+        r_current = min_table.get_min(u, v);
+        r_current_true = *std::min_element(std::next(sequence.begin(), u), std::next(sequence.begin(), v + 1));
+        assert(r_current == r_current_true);
+    }
+}
+
 void run_all_tests() {
     test_from_task();
     test_sequence_generator();
+    test_one_element();
+    test_one_request();
+    test_sparse_table();
 }
 
 // Конец тестов
