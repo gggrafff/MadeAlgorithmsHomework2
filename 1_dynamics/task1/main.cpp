@@ -43,6 +43,7 @@
   */
 
 #include <fstream>
+#include <iostream>
 #include <vector>
 #include <algorithm>
 
@@ -80,26 +81,26 @@ Path find_profitable_path(const size_t N, const size_t K, const std::vector<int6
 
 int main(int argc, char *argv[]) {
     // Чтение входных данных
-    std::ifstream fin("input.txt");
+    //std::ifstream fin("input.txt");
     size_t N{0};
     size_t K{0};
-    fin >> N >> K;
+    std::cin >> N >> K;
     std::vector<int64_t> coins(N, 0);
     for (uint64_t i = 1; i < N - 1; ++i) {
-        fin >> coins[i];
+        std::cin >> coins[i];
     }
-    fin.close();
+    //fin.close();
 
     Path path = find_profitable_path(N, K, coins);
 
     // Запись результата
-    std::ofstream fout("output.txt");
-    fout << path.second << std::endl;
-    fout << path.first.size() - 1 << std::endl;  // количество прыжков на 1 меньше длины пути
+    //std::ofstream fout("output.txt");
+    std::cout << path.second << std::endl;
+    std::cout << path.first.size() - 1 << std::endl;  // количество прыжков на 1 меньше длины пути
     for (const auto &step: path.first) {
-        fout << step + 1 << " ";  // столбики нумеруются с 1 в условии
+        std::cout << step + 1 << " ";  // столбики нумеруются с 1 в условии
     }
-    fout.close();
+    //fout.close();
 
     return 0;
 }

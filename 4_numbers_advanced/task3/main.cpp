@@ -1,4 +1,27 @@
 /*
+ * C. Корень по модулю
+ * ограничение по времени на тест 4 секунды
+ * ограничение по памяти на тест 256 мегабайт ввод
+ * стандартный ввод
+ * вывод стандартный вывод
+
+ * Даны числа a, b и m, (1≤a,b<m≤109), m — простое. Требуется найти корень степени b из a по модулю m.
+ *
+ * Входные данные
+ * Входной файл состоит из одного или нескольких тестов. Количество тестов T≤300 задано в первой строке.
+ * В T последующих строках заданы по три числа в каждой — a, b и m.
+ * Выходные данные
+ * Для каждого из тестов выведите какой-либо из корней степени b из a по модулю m, либо -1,
+ * если искомого корня не существует. Выводимое число должно быть в пределах от -1 до m−1.
+ *
+ * Пример
+ * Входные данные
+ * 2
+ * 4 3 5
+ * 1 3 7
+ * Выходные данные
+ * 4
+ * 1
  */
 
 #include <iostream>
@@ -195,7 +218,7 @@ std::optional<uint64_t> discrete_logarithm(const uint64_t a, const uint64_t b, c
  * @param n Модуль поля.
  * @return Значение логарифма, если оно существует.
  */
-std::optional<uint64_t> discrete_sqrt(const uint64_t a, const uint64_t b, const uint64_t n) {
+std::optional<uint64_t> discrete_root(const uint64_t a, const uint64_t b, const uint64_t n) {
     assert(a != 0 || (a == 0 && b == 1));
     if (b == 0) {
         return 0;
@@ -216,14 +239,14 @@ void test_from_task() {
     uint64_t a = 3;
     uint64_t b = 4;
     uint64_t n = 5;
-    auto result = discrete_sqrt(a, b, n);
+    auto result = discrete_root(a, b, n);
     assert(result.has_value());
     assert(binpow(result.value(), a, n) == b);
     assert(result.value() < n);
     a = 3;
     b = 1;
     n = 7;
-    result = discrete_sqrt(a, b, n);
+    result = discrete_root(a, b, n);
     assert(result.has_value());
     assert(binpow(result.value(), a, n) == b);
     assert(result.value() < n);
@@ -233,49 +256,49 @@ void test_module7() {
     uint64_t a = 0;
     uint64_t b = 1;
     uint64_t n = 7;
-    auto result = discrete_sqrt(a, b, n);
+    auto result = discrete_root(a, b, n);
     assert(result.has_value());
     assert(binpow(result.value(), a, n) == b);
     assert(result.value() < n);
     a = 1;
     b = 3;
     n = 7;
-    result = discrete_sqrt(a, b, n);
+    result = discrete_root(a, b, n);
     assert(result.has_value());
     assert(binpow(result.value(), a, n) == b);
     assert(result.value() < n);
     a = 2;
     b = 2;
     n = 7;
-    result = discrete_sqrt(a, b, n);
+    result = discrete_root(a, b, n);
     assert(result.has_value());
     assert(binpow(result.value(), a, n) == b);
     assert(result.value() < n);
     a = 3;
     b = 6;
     n = 7;
-    result = discrete_sqrt(a, b, n);
+    result = discrete_root(a, b, n);
     assert(result.has_value());
     assert(binpow(result.value(), a, n) == b);
     assert(result.value() < n);
     a = 4;
     b = 4;
     n = 7;
-    result = discrete_sqrt(a, b, n);
+    result = discrete_root(a, b, n);
     assert(result.has_value());
     assert(binpow(result.value(), a, n) == b);
     assert(result.value() < n);
     a = 5;
     b = 5;
     n = 7;
-    result = discrete_sqrt(a, b, n);
+    result = discrete_root(a, b, n);
     assert(result.has_value());
     assert(binpow(result.value(), a, n) == b);
     assert(result.value() < n);
     a = 6;
     b = 1;
     n = 7;
-    result = discrete_sqrt(a, b, n);
+    result = discrete_root(a, b, n);
     assert(result.has_value());
     assert(binpow(result.value(), a, n) == b);
     assert(result.value() < n);
@@ -285,7 +308,7 @@ void test_module2() {
   const uint64_t a = 1;
   const uint64_t b = 1;
   const uint64_t n = 2;
-    auto result = discrete_sqrt(a, b, n);
+    auto result = discrete_root(a, b, n);
     assert(result.has_value());
     assert(binpow(result.value(), a, n) == b);
     assert(result.value() < n);
@@ -380,7 +403,7 @@ int main(int argc, char *argv[]) {
     results.reserve(T);
     for (const auto &test : tests) {
         const auto&[a, b, n] = test;
-        results.push_back(discrete_sqrt(a, b, n));
+        results.push_back(discrete_root(a, b, n));
     }
 
     // Запись результата

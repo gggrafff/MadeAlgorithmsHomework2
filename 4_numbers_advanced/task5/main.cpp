@@ -1,5 +1,36 @@
 /*
+ * E. Факторизация
+ * ограничение по времени на тест 3 секунды
+ * ограничение по памяти на тест 256 мегабайт
+ * ввод стандартный ввод
+ * вывод стандартный вывод
+
+ * Дано натуральное число. Факторизуйте его, то есть представьте в виде произведения набора простых чисел.
+ * Число p называется простым, если имеет ровно два различных натуральных делителя: 1 и p.
+ *
+ * Входные данные
+ * В единственной строке записано единственное натуральное число N. 2 ≤ N ≤ 9·1018.
+ * Выходные данные
+ * Выведите в неубывающем порядке одно или несколько простых чисел, произведение которых равно N.
+ * Примеры
+ * Входные данные
+ * 6
+ * Выходные данные
+ * 2 3
+ * Входные данные
+ * 7
+ * Выходные данные
+ * 7
  */
+
+ /*
+  * !!!!!!!!!!!!!!!!!!!!!!!!!
+  * Чтобы было легче проверять:
+  * Пока искал ошибку (оказалось, что она в чтении данных), реализовал кучу разных алгоритмов.
+  * Удалять не хочу, но читать весь код не обязательно. Контест проходил исключительно Ро методом Полларда.
+  * Часть, касающаяся проверки на простоту в точности повторяет решение задачи D.
+  * !!!!!!!!!!!!!!!!!!!!!!!!!
+  */
 
 #include <iostream>
 #include <vector>
@@ -10,6 +41,7 @@
 #include <optional>
 #include <random>
 #include <tuple>
+#include <array>
 
 /**
  * @brief Бинарное умножение по модулю.
@@ -128,6 +160,9 @@ std::tuple<NumberType, int64_t, int64_t> continued_division(NumberType a, Number
  * @return Если ответ false - то число точно составное, иначе - может быть как простым, так и составным.
  */
 bool is_prime_ferma(uint64_t n, uint16_t iterations_count = 10) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<uint64_t> numbers_generator(0, n);
     // Проверяем тривиальные случаи
     if (n == 2 || n == 3)
         return true;
@@ -135,7 +170,7 @@ bool is_prime_ferma(uint64_t n, uint16_t iterations_count = 10) {
         return false;
 
     for (auto i = 0; i < iterations_count; ++i) {
-        uint64_t a = rand() % (n - 1) + 1;
+        uint64_t a = numbers_generator(gen) % (n - 1) + 1;
         auto apn = binpow(a, n - 1, n);
         if (apn != 1) {
             return false;
@@ -153,6 +188,9 @@ bool is_prime_ferma(uint64_t n, uint16_t iterations_count = 10) {
  * @return Если ответ false - то число точно составное, иначе - может быть как простым, так и составным.
  */
 bool is_prime_miller_rabin(uint64_t n, uint16_t iterations_count = 10) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<uint64_t> numbers_generator(0, n);
     // Проверяем тривиальные случаи
     if (n == 2 || n == 3)
         return true;
@@ -170,7 +208,7 @@ bool is_prime_miller_rabin(uint64_t n, uint16_t iterations_count = 10) {
     assert((q & 1) == 1);
 
     for (auto i = 0; i < iterations_count; ++i) {
-        uint64_t a = rand() % (n - 3) + 2;  // Выбрать случайное целое число a в отрезке [2, n − 2]
+        uint64_t a = numbers_generator(gen) % (n - 3) + 2;  // Выбрать случайное целое число a в отрезке [2, n − 2]
         assert(a >= 2);
         assert(a <= n - 2);
 
@@ -250,6 +288,9 @@ int64_t symbol_jacobi(int64_t a, int64_t b) {
  * @return Если ответ false - то число точно составное, иначе - может быть как простым, так и составным.
  */
 bool is_prime_solovey_shtrassen(uint64_t n, uint16_t iterations_count = 10) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<uint64_t> numbers_generator(0, n);
     // Проверяем тривиальные случаи
     if (n == 2 || n == 3)
         return true;
@@ -257,7 +298,7 @@ bool is_prime_solovey_shtrassen(uint64_t n, uint16_t iterations_count = 10) {
         return false;
 
     for (auto i = 0; i < iterations_count; ++i) {
-        const uint64_t a = rand() % (n - 2) + 2;  // Выбрать случайное целое число a в отрезке [2, n − 1]
+        const uint64_t a = numbers_generator(gen) % (n - 2) + 2;  // Выбрать случайное целое число a в отрезке [2, n − 1]
         assert(a >= 2);
         assert(a <= n - 1);
         const auto gcd = std::get<0>(continued_division(a, n));
@@ -347,6 +388,10 @@ std::vector<uint64_t> get_primes(uint64_t number) {
     return primes;
 }
 
+/**
+ * @brief Расчёт решета Эратосфена до 1_000_000
+ * @return Кортеж. Первый элемент - массив простых чисел до миллиона. Второй элемент - массив минимальных простых делителей для факторизации.
+ */
 std::tuple<std::vector<uint64_t>, std::vector<uint64_t>> compute_sieve() {
     const uint64_t max_number = 1000 * 1000;
     std::vector<uint64_t> primes;
@@ -367,12 +412,20 @@ std::tuple<std::vector<uint64_t>, std::vector<uint64_t>> compute_sieve() {
     return {primes, least_prime};
 }
 
+/**
+ * @brief Получить статически инициализированное решето.
+ * @return Кортеж. Первый элемент - массив простых чисел до миллиона. Второй элемент - массив минимальных простых делителей для факторизации.
+ */
 std::tuple<std::vector<uint64_t>, std::vector<uint64_t>> get_sieve() {
     static std::tuple<std::vector<uint64_t>, std::vector<uint64_t>> sieve = compute_sieve();
     return sieve;
 }
 
-
+/**
+ * @brief Факторизация с использованием решета Эратосфена
+ * @param number Число, которое факторизуем.
+ * @return Массив простых делителей по возрастанию.
+ */
 std::vector<uint64_t> factorize_eratosthenes(uint64_t number) {
     if (number < 2) {
         return {};
@@ -390,27 +443,13 @@ std::vector<uint64_t> factorize_eratosthenes(uint64_t number) {
     return result;
 }
 
-std::vector<uint64_t> factorize_exhaustion(uint64_t number) {
-    std::vector<uint64_t> result;
 
-    if (number < 2) {
-        return {};
-    }
-
-    for (uint64_t i = 2; i <= sqrt(number); i++) {
-        while (number % i == 0) {
-            result.push_back(i);
-            number /= i;
-        }
-    }
-
-    if (number != 1) {
-        result.push_back(number);
-    }
-
-    return result;
-}
-
+/**
+ * @brief Поиск делителя числа P-1 алгоритмом Полларда.
+ * @param n Число, для которого ищем делитель.
+ * @param iterations_count Количество итераций алгоритма.
+ * @return Делитель. Если не найден, то 1.
+ */
 uint64_t find_divisor_pollard_p_1(uint64_t n, uint64_t iterations_count = 100) {
     // параметры алгоритма, существенно влияют на производительность и качество поиска
     const uint64_t b = 13;
@@ -447,24 +486,30 @@ uint64_t find_divisor_pollard_p_1(uint64_t n, uint64_t iterations_count = 100) {
 
 }
 
+/**
+ * @brief Поиск делителя числа Ро алгоритмом Полларда.
+ * @param n Число, для которого ищем делитель.
+ * @param iterations_count Количество итераций алгоритма.
+ * @return Делитель. Если не найден, то 1.
+ */
 uint64_t find_divisor_pollard_rho(uint64_t n, uint64_t iterations_count = 100000, uint64_t increase = 1) {
     static std::random_device rd;  //Will be used to obtain a seed for the random number engine
     static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
     std::uniform_int_distribution<uint64_t> numbers_generator(0, n);
     uint64_t a0 = numbers_generator(gen);
     uint64_t a1 = a0;
-    a1 = binpow(a1, 2, n);
+    a1 = binprod(a1, a1, n);
     a1 += increase;
     a1 %= n;
-    auto g = std::get<0>(continued_division((a1 >= a0 ? a1 - a0 : a0 - a1), n));
-    for (unsigned count = 0; count < iterations_count && (g == 1 || g == n); count++) {
-        a0 = binpow(a0, 2, n);
+    uint64_t g = std::get<0>(continued_division((a1 >= a0 ? a1 - a0 : a0 - a1), n));
+    for (uint64_t count = 0; count < iterations_count && g == 1; count++) {
+        a0 = binprod(a0, a0, n);
         a0 += increase;
         a0 %= n;
-        a1 = binpow(a1, 2, n);
+        a1 = binprod(a1, a1, n);
         a1 += increase;
         a1 %= n;
-        a1 = binpow(a1, 2, n);
+        a1 = binprod(a1, a1, n);
         a1 += increase;
         a1 %= n;
         g = std::get<0>(continued_division((a1 >= a0 ? a1 - a0 : a0 - a1), n));
@@ -472,6 +517,11 @@ uint64_t find_divisor_pollard_rho(uint64_t n, uint64_t iterations_count = 100000
     return g;
 }
 
+/**
+ * @brief Поиск делителя числа алгоритмом Ферма.
+ * @param n Число, для которого ищем делитель.
+ * @return Делитель.
+ */
 uint64_t find_divisor_ferma(const uint64_t n) {
     auto x = static_cast<uint64_t>(sqrt(n));
     uint64_t y = 0;
@@ -488,6 +538,12 @@ uint64_t find_divisor_ferma(const uint64_t n) {
         }
 }
 
+/**
+ * @brief Поиск делителя числа алгоритмом Полларда-Брента.
+ * @param n Число, для которого ищем делитель.
+ * @param iterations_count Количество итераций алгоритма.
+ * @return Делитель. Если не найден, то 1.
+ */
 uint64_t find_divisor_pollard_brent(uint64_t n, uint64_t iterations_count = 19) {
     uint64_t b0 = rand() % n;
     uint64_t b1 = (b0 * b0 + 2) % n;
@@ -506,6 +562,12 @@ uint64_t find_divisor_pollard_brent(uint64_t n, uint64_t iterations_count = 19) 
     return 1;
 }
 
+/**
+ * @brief Поиск делителя числа алгоритмом Полларда-Монте-Карло.
+ * @param n Число, для которого ищем делитель.
+ * @param iterations_count Количество итераций алгоритма.
+ * @return Делитель. Если не найден, то 1.
+ */
 uint64_t find_divisor_pollard_monte_carlo (uint64_t n, uint64_t m = 100)
 {
     uint64_t b = rand() % (m-2) + 2;
@@ -551,7 +613,7 @@ uint64_t find_divisor_pollard_monte_carlo (uint64_t n, uint64_t m = 100)
 }
 
 
-void factorize(const uint64_t &n, std::vector<uint64_t> &result) {
+void factorize(const uint64_t n, std::vector<uint64_t> &result) {
     if (n == 1)
         return;
 
@@ -569,7 +631,7 @@ void factorize(const uint64_t &n, std::vector<uint64_t> &result) {
     } else {
         // число большое, запускаем на нем алгоритмы факторизации
         uint64_t divisor{1};
-        if (divisor == 1) {
+        /*if (divisor == 1) {
             divisor = find_divisor_pollard_brent(n, 1000);
         }
         if (divisor == 1) {
@@ -577,7 +639,7 @@ void factorize(const uint64_t &n, std::vector<uint64_t> &result) {
         }
         if (divisor == 1) {
             find_divisor_pollard_p_1(n, 1000);
-        }
+        }*/
         if (divisor == 1) {
             static std::array<uint64_t, 5> primes_small {1, 3, 5, 7, 11};
             for(auto& prime: primes_small)
@@ -589,12 +651,12 @@ void factorize(const uint64_t &n, std::vector<uint64_t> &result) {
                 }
             }
         }
-        /*if (divisor == 1) {
-            divisor = find_divisor_ferma(n);
-        }*/
-        /*if (divisor == 1) {
+        if (divisor == 1) {
             result.push_back(n);
             return;
+        }
+        /*if (divisor == 1) {
+            divisor = find_divisor_ferma(n);
         }*/
         assert(divisor != 1);
         // рекурсивно обрабатываем найденные множители
@@ -666,6 +728,17 @@ void test_factorize_very_big_3() {
     std::vector<uint64_t> true_factors{1073676287, 1073676287};
     std::sort(factors.begin(), factors.end());
     assert(factors == true_factors);
+}
+
+void test_factorize_very_big_4() {
+    uint64_t n = 3265543588875322355;
+    std::vector<uint64_t> factors;
+    factorize(n, factors);
+    uint64_t multiplication = 1;
+    for (auto factor: factors) {
+        multiplication *= factor;
+    }
+    assert(multiplication == n);
 }
 
 void test_factorize_middle() {
@@ -865,6 +938,7 @@ void run_all_tests() {
     test_factorize_carol();
     test_factorize_very_big_2();
     test_factorize_very_big_3();
+    test_factorize_very_big_4();
 }
 
 // Конец тестов
@@ -885,7 +959,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Чтение входных данных
-    size_t n{0};
+    uint64_t n{0};
     std::cin >> n;
     std::vector<uint64_t> factors;
 

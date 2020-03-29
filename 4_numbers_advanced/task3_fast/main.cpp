@@ -26,6 +26,7 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include <map>
 #include <algorithm>
 #include <cassert>
@@ -110,6 +111,7 @@ uint64_t binpow(uint64_t a, uint64_t b, uint64_t module) {
         return binpow_large(a, b, module);
     }
 }
+
 
 /**
  * @brief Расширенный алгоритм Евклида.
@@ -328,10 +330,10 @@ bool is_prime(uint64_t n) {
         return false;
     }
 
-    bool solovey_shtrassen = is_prime_solovey_shtrassen(n, 2);
+    /*bool solovey_shtrassen = is_prime_solovey_shtrassen(n, 2);
     if (!solovey_shtrassen) {
         return false;
-    }
+    }*/
 
     return true;
 }
@@ -466,7 +468,13 @@ uint64_t find_divisor_pollard_rho(uint64_t n, uint64_t iterations_count = 100000
 }
 
 
-void factorize(const uint64_t n, std::vector<uint64_t> &result) {
+void factorize(uint64_t n, std::vector<uint64_t> &result) {
+    while ((n&1)==0)
+    {
+        n/=2;
+        result.push_back(2);
+    }
+
     if (n == 1)
         return;
 
@@ -565,10 +573,12 @@ std::optional<uint64_t> discrete_logarithm(const uint64_t a, const uint64_t b, c
         }
     }
     uint64_t current_aik = 1;
-    std::map<uint64_t, size_t> apk;
+    std::unordered_map<uint64_t, size_t> apk;
     for (size_t r = 1; r <= k; ++r) {
         current_aik = binprod(current_aik, ak, n);
-        apk[current_aik] = r;
+        if(apk.find(current_aik) == apk.end()) {
+            apk[current_aik] = r;
+        }
     }
     uint64_t current_bai = b;
     for (size_t s = 1; s <= k; ++s) {
@@ -585,6 +595,19 @@ std::optional<uint64_t> discrete_logarithm(const uint64_t a, const uint64_t b, c
     return std::nullopt;
 }
 
+std::optional<std::pair<uint64_t, uint64_t>> solve_diophantine_equation(uint64_t A, uint64_t B, uint64_t C) {
+    auto [g, x, y] = continued_division(A, B);
+    if (C % g != 0) {
+        return std::nullopt;  // Уравнение имеет либо бесконечно много произвольных решений, либо не имеет решений
+    }
+    // Находим решение
+    if(x < 0) {
+        x = (x + B - 1) % (B - 1);
+        y = (g - x * A) / (B - 1);
+    }
+    return {{x, y}};
+}
+
 /**
  * @brief Поиск дискретного корня в конечном поле по модулю. x^a=b (mod n)
  * @param a Показатель степени.
@@ -598,12 +621,33 @@ std::optional<uint64_t> discrete_root(const uint64_t a, const uint64_t b, const 
     if (b == 0) {
         return 0;
     }
+    if (n == 2) {
+        return 1;
+    }
     auto g = find_min_generator(n);
-    auto gpa = binpow(g, a, n);
-    auto y = discrete_logarithm(gpa, b, n);
-    if (y.has_value()) {
-        auto x = binpow(g, y.value(), n);
-        return x;
+    if (g == 0)
+    {
+        return std::nullopt;
+    }
+    auto log = discrete_logarithm(g, b, n);
+    if (!log.has_value()) {
+        return std::nullopt;
+    }
+    //auto solving = solve_diophantine_equation(a, (n-1), log.value());
+
+    auto [gcd, x, y] = continued_division(a, n-1);
+    if(x < 0)
+    {
+        x = (x + n - 1) % (n - 1);
+        //y = (gcd - x * b) / (n - 1);
+    }
+    /*if (solving.has_value())
+    {
+        return binpow(g, solving.value().first, n);
+    }*/
+    if (log.value() % gcd == 0)
+    {
+        return binpow(g, x * log.value()/gcd, n);
     }
     return std::nullopt;
 }
