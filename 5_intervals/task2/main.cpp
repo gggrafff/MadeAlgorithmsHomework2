@@ -49,7 +49,62 @@
 #include <cassert>
 #include <cmath>
 
+/**
+ * https://neerc.ifmo.ru/wiki/index.php?title=%D0%94%D0%B5%D1%80%D0%B5%D0%B2%D0%BE_%D0%A4%D0%B5%D0%BD%D0%B2%D0%B8%D0%BA%D0%B0
+ */
+class FenwickTree {
+public:
+    FenwickTree(const std::vector<int64_t> &numbers) {
+        /*
+         * function build():
+               for i = 0 to N - 1
+                   modify(i, a[i])
+         */
+        /*fenwick_sums.reserve(numbers.size());
+        fenwick_sums.push_back(numbers.front());
+        for (size_t i = 1; i < numbers.size(); ++i) {
+            fenwick_sums[i] = prefix_sums[i - 1];
+        }*/
+    }
 
+    uint64_t get_sum(size_t l, size_t r) {
+        if (l > r) {
+            std::swap(l, r);
+        }
+        /*
+         * int sum(i):
+               result = 0
+               while i >= 0
+                   result += t[i]
+                   i = f(i) - 1
+         */
+    }
+
+    void add_to_element(size_t index, int64_t value){
+        /*
+         * function modify(i, d):
+               while i < N
+                   t[i] += d
+                   i = i | (i + 1)
+         */
+    }
+
+    void set_element(size_t index, int64_t value){
+        /*
+         * function set(i, x):
+           d = x - a[i]
+           a[i] = x
+           modify(i, d)
+         */
+    }
+
+private:
+    size_t fenwick(const size_t i)
+    {
+        return i & (i + 1);
+    }
+    std::vector<int64_t> fenwick_sums;
+};
 
 // Начало тестов
 
