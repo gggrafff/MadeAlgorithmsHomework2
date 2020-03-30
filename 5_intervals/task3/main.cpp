@@ -49,6 +49,41 @@
 #include <cmath>
 
 
+/*
+ * https://neerc.ifmo.ru/wiki/index.php?title=%D0%94%D0%B5%D1%80%D0%B5%D0%B2%D0%BE_%D0%BE%D1%82%D1%80%D0%B5%D0%B7%D0%BA%D0%BE%D0%B2._%D0%9F%D0%BE%D1%81%D1%82%D1%80%D0%BE%D0%B5%D0%BD%D0%B8%D0%B5
+ * https://e-maxx.ru/algo/segment_tree
+ */
+class SegmentTree {
+public:
+    explicit SegmentTree(const std::vector<int64_t> &numbers) {
+
+    }
+
+    uint64_t get_min(size_t l, size_t r) {
+        if (l > r) {
+            std::swap(l, r);
+        }
+        if (l == r) {
+
+        }
+
+    }
+
+    void add_to_element(size_t index, const int64_t value) {
+
+    }
+
+    void set_element(const size_t index, const int64_t value) {
+        const auto diff = value - numbers_[index];
+        numbers_[index] = value;
+        add_to_element(index, diff);
+    }
+
+private:
+
+    std::vector<int64_t> tree_;
+    std::vector<int64_t> numbers_;
+};
 
 // Начало тестов
 
@@ -75,10 +110,30 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // Чтение входных данных
-
-
-    // Запись результата
+    // Решение задачи
+    size_t n{0};
+    std::cin >> n;
+    std::vector<int64_t> numbers(n, 0);
+    for (size_t i = 0; i < n; ++i) {
+        std::cin >> numbers[i];
+    }
+    SegmentTree tree(numbers);
+    std::string operation;
+    while (!std::cin.eof()) {
+        std::cin >> operation;
+        if (operation == "min") {
+            size_t l{0}, r{0};
+            std::cin >> l >> r;
+            std::cout << tree.get_sum(l - 1, r - 1) << std::endl;
+        } else if (operation == "set") {
+            size_t index{0};
+            uint64_t value{0};
+            std::cin >> index >> value;
+            tree.set_element(index - 1, value);
+        } else {
+            break;
+        }
+    }
 
 
     return 0;
