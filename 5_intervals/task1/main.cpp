@@ -35,29 +35,58 @@
 #include <cassert>
 #include <cmath>
 
+/**
+ * @brief Генератор последовательностей вида a[i] = (x * a[i-1] + y) mod n.
+ * @tparam CoefficientsType Тип коэффициентов x, y.
+ * @tparam SequenceType Тип элементов a[i].
+ */
 template<typename CoefficientsType, typename SequenceType>
 class SequenceGenerator {
 public:
+    /**
+     * @brief Конструируем генератор.
+     * @param x Коэффициент х из выражения a[i] = (x * a[i-1] + y) mod n.
+     * @param y Коэффициент y из выражения a[i] = (x * a[i-1] + y) mod n.
+     * @param a0 Первый элемент последовательности.
+     * @param module Модуль n из выражения a[i] = (x * a[i-1] + y) mod n.
+     */
     SequenceGenerator(CoefficientsType x, CoefficientsType y, SequenceType a0, uint64_t module) :
             x_(x),
             y_(y),
             a_current_(a0),
             module_(module) {}
 
+    /**
+     * @brief Генерирует следующий элемент последовательности.
+     * @return Следующий элемент последовательности.
+     */
     SequenceType next() {
         a_current_ = (x_ * a_current_ + y_) % module_;
         return a_current_;
     }
 
-    SequenceType get_current()
-    {
+    /**
+     * @brief Возвращает текущий элемент последовательности.
+     * @return Текущий элемент последовательности.
+     */
+    SequenceType get_current() {
         return a_current_;
     }
 
+    /**
+     * @brief Генерирует следующий элемент последовательности и берет его по заданному модулю.
+     * @param module Модуль, по которому нужно взять следующий элемент.
+     * @return Остаток от деления следующего элемента последовательности на module.
+     */
     SequenceType next_by_module(uint64_t module) {
         return next() % module;
     }
 
+    /**
+     * @brief Генерирует несколько следующих элементов последовательности.
+     * @param count Количество генерируемых элементов.
+     * @return Массив сгенерированных элементов.
+     */
     std::vector<SequenceType> next(size_t count) {
         std::vector<SequenceType> result;
         result.reserve(count);
@@ -67,6 +96,11 @@ public:
         return result;
     }
 
+    /**
+     * @brief Генерирует несколько следующих элементов последовательности и возвращает вместе с текущим элементом.
+     * @param length Общая длина последовательности.
+     * @return Текущий элемент и несколько сгенерированных.
+     */
     std::vector<SequenceType> get_sequence(size_t length) {
         std::vector<SequenceType> result;
         result.reserve(length);
@@ -77,6 +111,13 @@ public:
         return result;
     }
 
+    /**
+     * @brief Генерирует несколько следующих элементов последовательности и возвращает вместе с текущим элементом.
+     * @brief Элементы берутся по заданному модулю.
+     * @param length Общая длина последовательности.
+     * @param module Модуль, по которому берём элементы.
+     * @return Текущий элемент и несколько сгенерированных.
+     */
     std::vector<SequenceType> get_sequence_by_module(size_t length, uint64_t module) {
         std::vector<SequenceType> result;
         result.reserve(length);
@@ -94,9 +135,17 @@ private:
     SequenceType a_current_{0};
 };
 
+/**
+ * @brief Реализация префиксных сумм.
+ * @tparam SequenceType Тип элементов.
+ */
 template<typename SequenceType>
 class PrefixAdder {
 public:
+    /**
+     * @brief Выполняет предподсчёты (вычисляет префиксные суммы).
+     * @param numbers Массив элементов.
+     */
     PrefixAdder(const std::vector<SequenceType> &numbers) {
         prefix_sums = numbers;
         for (size_t i = 1; i < prefix_sums.size(); ++i) {
@@ -104,6 +153,12 @@ public:
         }
     }
 
+    /**
+     * @brief Генерирует элементы и выполняет предподсчёты (вычисляет префиксные суммы).
+     * @tparam GeneratorType Тип генератора.
+     * @param generator Генератор элементов.
+     * @param length Длина последовательности.
+     */
     template<typename GeneratorType>
     PrefixAdder(GeneratorType &generator, size_t length) {
         prefix_sums.reserve(length);
@@ -113,6 +168,12 @@ public:
         }
     }
 
+    /**
+     * @brief Запрос суммы на отрезке.
+     * @param l Левая граница отрезка.
+     * @param r Правая граница отрезка.
+     * @return Результат запроса.
+     */
     uint64_t get_sum(size_t l, size_t r) {
         if (l > r) {
             std::swap(l, r);
@@ -133,15 +194,13 @@ uint64_t solve_task(size_t n,
                     uint16_t a0,
                     size_t m,
                     int32_t z, int32_t t,
-                    size_t b0)
-{
-    if (m == 0)
-    {
+                    size_t b0) {
+    if (m == 0) {
         return 0;
     }
     SequenceGenerator<int32_t, uint16_t> array_generator(x, y, a0, 1 << 16);
     SequenceGenerator<int32_t, size_t> requests_generator(z, t, b0, 1 << 30);
-    PrefixAdder<uint32_t > adder(array_generator, n);
+    PrefixAdder<uint32_t> adder(array_generator, n);
     uint64_t total_sum = adder.get_sum(b0 % n, requests_generator.next_by_module(n));
     for (size_t i = 1; i < m; i += 1) {
         total_sum += adder.get_sum(requests_generator.next_by_module(n), requests_generator.next_by_module(n));

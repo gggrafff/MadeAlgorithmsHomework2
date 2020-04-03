@@ -13,12 +13,12 @@
  * количество элементов в массиве, количество запросов и первый элемент массива соответственно.
  * Вторая строка содержит два натуральных числа u1 и v1 (1⩽u1,v1⩽n) — первый запрос.
  * Для того, размер ввода был небольшой, массив и запросы генерируются.
- * Элементы a2,a3,…,an задаются следующей формулой: ai+1=(23⋅ai+21563) mod 16714589.
+ * Элементы a2,a3,…,an задаются следующей формулой: a[i+1]=(23⋅a[i]+21563) mod 16714589.
  * Например, при n=10, a1=12345 получается следующий массив:
  * a = (12345, 305498, 7048017, 11694653, 1565158, 2591019, 9471233, 570265, 13137658, 1325095).
  * Запросы генерируются следующим образом:
- * ui+1=((17⋅ui+751+ri+2i)modn)+1, vi+1=((13⋅vi+593+ri+5i)modn)+1, где ri — ответ на запрос номер i.
- * Обратите внимание, что ui может быть больше, чем vi.
+ * u[i+1]=((17⋅u[i]+751+r[i]+2i) mod n)+1, v[i]+1=((13⋅v[i]+593+r[i]+5i) mod n)+1, где ri — ответ на запрос номер i.
+ * Обратите внимание, что u[i] может быть больше, чем v[i].
  * Выходные данные
  * В выходной файл выведите um, vm и rm(последний запрос и ответ на него).
  * Примеры
@@ -53,33 +53,71 @@
 #include <tuple>
 #include <numeric>
 
+/**
+ * @brief Генератор последовательностей вида a[i] = (x * a[i-1] + y) mod n.
+ * @tparam CoefficientsType Тип коэффициентов x, y.
+ * @tparam SequenceType Тип элементов a[i].
+ */
 template<typename CoefficientsType, typename SequenceType>
 class SequenceGenerator {
 public:
+    /**
+     * @brief Конструируем генератор.
+     * @param x Коэффициент х из выражения a[i] = (x * a[i-1] + y) mod n.
+     * @param y Коэффициент y из выражения a[i] = (x * a[i-1] + y) mod n.
+     * @param a0 Первый элемент последовательности.
+     * @param module Модуль n из выражения a[i] = (x * a[i-1] + y) mod n.
+     */
     SequenceGenerator(CoefficientsType x, CoefficientsType y, SequenceType a0, uint64_t module) :
             x_(x),
             y_(y),
             a_current_(a0),
             module_(module) {}
 
+    /**
+     * @brief Генерирует следующий элемент последовательности.
+     * @return Следующий элемент последовательности.
+     */
     SequenceType next() {
         a_current_ = (x_ * a_current_ + y_) % module_;
         return a_current_;
     }
 
+    /**
+     * @brief Генерирует следующий элемент последовательности c разовой корректировкой коэффициентов и текущего состояния.
+     * @details a[i] = ((x + dx) * (a[i-1] + da) + (y + dy)) mod n
+     * @param dx Поправка для коэффициента x.
+     * @param dy Поправка для коэффициента y.
+     * @param da Поправка для текущего элемента.
+     * @return Следующий элемент последовательности.
+     */
     SequenceType next(CoefficientsType dx, CoefficientsType dy, SequenceType da) {
         a_current_ = ((x_ + dx) * (a_current_ + da) + (y_ + dy)) % module_;
         return a_current_;
     }
 
+    /**
+     * @brief Возвращает текущий элемент последовательности.
+     * @return Текущий элемент последовательности.
+     */
     SequenceType get_current() {
         return a_current_;
     }
 
+    /**
+     * @brief Генерирует следующий элемент последовательности и берет его по заданному модулю.
+     * @param module Модуль, по которому нужно взять следующий элемент.
+     * @return Остаток от деления следующего элемента последовательности на module.
+     */
     SequenceType next_by_module(uint64_t module) {
         return next() % module;
     }
 
+    /**
+     * @brief Генерирует несколько следующих элементов последовательности.
+     * @param count Количество генерируемых элементов.
+     * @return Массив сгенерированных элементов.
+     */
     std::vector<SequenceType> next(size_t count) {
         std::vector<SequenceType> result;
         result.reserve(count);
@@ -89,6 +127,11 @@ public:
         return result;
     }
 
+    /**
+     * @brief Генерирует несколько следующих элементов последовательности и возвращает вместе с текущим элементом.
+     * @param length Общая длина последовательности.
+     * @return Текущий элемент и несколько сгенерированных.
+     */
     std::vector<SequenceType> get_sequence(size_t length) {
         std::vector<SequenceType> result;
         result.reserve(length);
@@ -99,6 +142,13 @@ public:
         return result;
     }
 
+    /**
+     * @brief Генерирует несколько следующих элементов последовательности и возвращает вместе с текущим элементом.
+     * @brief Элементы берутся по заданному модулю.
+     * @param length Общая длина последовательности.
+     * @param module Модуль, по которому берём элементы.
+     * @return Текущий элемент и несколько сгенерированных.
+     */
     std::vector<SequenceType> get_sequence_by_module(size_t length, uint64_t module) {
         std::vector<SequenceType> result;
         result.reserve(length);
@@ -116,6 +166,11 @@ private:
     SequenceType a_current_{0};
 };
 
+/**
+ * @brief Вычисляет для каждого целого x от 1 до n значение y = 2^k такое, что 2^(k - 1) < x <= 2^k
+ * @param max_number Максимальное число n, до которого вычисляем.
+ * @return Массив результатов для всех x от 1 до max_number.
+ */
 std::vector<uint8_t> calculate_ceil_lb(uint64_t max_number) {
     std::vector<uint8_t> result{0};
     for (uint64_t i = 1; i < max_number; ++i) {
@@ -127,9 +182,17 @@ std::vector<uint8_t> calculate_ceil_lb(uint64_t max_number) {
     return result;
 }
 
+/**
+ * @brief Реализация разреженной таблицы.
+ * @tparam SequenceType Тип элементов в таблице.
+ */
 template<typename SequenceType>
 class SparseTable {
 public:
+    /**
+     * @brief Конструирует разреженную таблицу методом ДП.
+     * @param numbers Массив элементов, для которых строим таблицу.
+     */
     SparseTable(const std::vector<SequenceType> &numbers) {
         ceil_lb_ = calculate_ceil_lb(numbers.size() + 1);
         sparse_table_.resize(numbers.size(), std::vector<SequenceType>(
@@ -141,6 +204,12 @@ public:
         dynamics_initialize();
     }
 
+    /**
+     * @brief Конструирует разреженную таблицу методом ДП.
+     * @tparam GeneratorType Тип генератора элементов.
+     * @param generator Генератор элементов.
+     * @param length Длина последовательности.
+     */
     template<typename GeneratorType>
     SparseTable(GeneratorType &generator, size_t length) {
         ceil_lb_ = calculate_ceil_lb(length + 1);
@@ -154,6 +223,12 @@ public:
         dynamics_initialize();
     }
 
+    /**
+     * @brief Запрос минимума на отрезке.
+     * @param l Левая граница отрезка. Индекс.
+     * @param r Правая граница отрезка. Индекс.
+     * @return Результат запроса.
+     */
     SequenceType get_min(size_t l, size_t r) {
         if (l == r) {
             return sparse_table_[l][0];
@@ -166,6 +241,9 @@ public:
     }
 
 private:
+    /**
+     * @brief Совершает переходы в методе ДП для заполнения таблицы.
+     */
     void dynamics_initialize() {
         for (auto k = 1; k < sparse_table_[0].size(); ++k) {
             for (auto l = 0; l < sparse_table_.size(); ++l) {
@@ -244,8 +322,7 @@ void test_sparse_table() {
     for (size_t i = 0; i < 1000; ++i) {
         auto u = u_generator.next(0, r_current + 2 * i, 1);
         auto v = v_generator.next(0, r_current + 5 * i, 1);
-        if (u > v)
-        {
+        if (u > v) {
             std::swap(u, v);
         }
         r_current = min_table.get_min(u, v);
