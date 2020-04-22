@@ -69,7 +69,7 @@ public:
      * @param numbers Массив чисел, по которым хотим делать запросы.
      */
     explicit FenwickTree(const std::vector<int64_t> &numbers) {
-        numbers_ = numbers;
+        elements_ = numbers;
         fenwick_sums_.resize(numbers.size(), 0);
         for (size_t i = 0; i < numbers.size(); ++i) {
             add_to_element(i, numbers[i]);
@@ -129,9 +129,9 @@ public:
      * @param value Значение, которое устанавливаем.
      */
     void set_element(const size_t index, const int64_t value) {
-        assert(index >= 0 && index < numbers_.size());
-        const auto diff = value - numbers_[index];
-        numbers_[index] = value;
+        assert(index >= 0 && index < elements_.size());
+        const auto diff = value - elements_[index];
+        elements_[index] = value;
         add_to_element(index, diff);
     }
 
@@ -148,7 +148,7 @@ private:
     }
 
     std::vector<int64_t> fenwick_sums_;
-    std::vector<int64_t> numbers_;
+    std::vector<int64_t> elements_;
 };
 
 /**
