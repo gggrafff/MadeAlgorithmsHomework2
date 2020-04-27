@@ -63,6 +63,10 @@
  * #B
  */
 
+ /*
+  * https://neerc.ifmo.ru/wiki/index.php?title=Примеры_сведения_к_задачам_поиска_потока
+  */
+
 #include <iostream>
 #include <vector>
 #include <algorithm>

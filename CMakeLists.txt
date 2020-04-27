@@ -10,6 +10,7 @@ add_subdirectory(4_numbers_advanced)
 add_subdirectory(5_intervals)
 add_subdirectory(6_intervals_advanced)
 add_subdirectory(8_flows)
+add_subdirectory(9_flows_advanced)
 
 
 #Cxxdroid-binary: 4_numbers_advanced/task3_not_solved/task4_3

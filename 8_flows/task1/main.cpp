@@ -52,23 +52,40 @@
 #include <array>
 #include <queue>
 
+/**
+ * @brief Структура, описывающая ребро сети.
+ */
 struct Edge {
     size_t to{0};  // куда ведёт ребро
-    size_t reverse_edge_index{0};  // индекс обратного ребра
+    size_t reverse_edge_index{0};  // индекс обратного ребра в другой вершине
     int64_t capacity{0};  // пропускная способность ребра
     int64_t flow{0};  // поток через ребро
 };
+
+/**
+ * Структура, описывающая узел (вершину) сети.
+ */
 struct NodeFlowNetwork {
     size_t depth{std::numeric_limits<size_t>::max()};  // удалённость от истока
     size_t p{0};  // индекс первого неудалённого ребра, идущего из узла
-    std::vector<Edge> edges;
+    std::vector<Edge> edges;  // массив рёбер, инцидентных вершине
 };
 
+/**
+ * Структура, описывающая сеть.
+ */
 struct FlowNetwork {
-    std::vector<NodeFlowNetwork> nodes;
-    size_t source_index{0};
-    size_t sink_index{0};
+    std::vector<NodeFlowNetwork> nodes;  // массив вершин
+    size_t source_index{0};  // индекс вершины, являющейся истоком
+    size_t sink_index{0};  // индекс вершины, являющейся стоком
 
+    /**
+     * @brief Добавляет неориентированное ребро в сеть.
+     * @details Добавляет два ориентированных ребра, направленных в разные стороны.
+     * @param from Индекс одной из вершин, соединённых ребром.
+     * @param to Индекс второй из вершин, соединённых ребром.
+     * @param capacity Пропускная способность ребра.
+     */
     void add_undirected_edge(size_t from, size_t to, int64_t capacity) {
         nodes[from].edges.push_back({to, 0, capacity, 0});
         nodes[to].edges.push_back({from, 0, capacity, 0});
@@ -78,7 +95,14 @@ struct FlowNetwork {
 };
 
 
-bool bfs(FlowNetwork &network) {
+/**
+ * @brief Поиском в ширину определяет удаление вершин от истока.
+ * @details Часть алгоритма Диница.
+ * @details Вместо построения слоистой сети просто измерим удаление вершин от истока и учтём их при дальнейшем обходе.
+ * @param network Сеть.
+ * @return true, если сток достижим из истока, иначе - false.
+ */
+bool measure_depth_vertices(FlowNetwork &network) {
     //заполняем массив d значениями, равными бесконечности
     for (auto &node: network.nodes) {
         node.depth = std::numeric_limits<size_t>::max();
@@ -101,11 +125,15 @@ bool bfs(FlowNetwork &network) {
     return (network.nodes[network.sink_index].depth != std::numeric_limits<size_t>::max());
 }
 
-
-// поиск блокирующего потока
-// u — номер вершины
-// minC — минимальная пропускная способность дополняющей сети на пройденном dfs пути
-int64_t dfs(FlowNetwork &network, size_t u, int64_t minC) {
+/**
+ * @brief Поиск блокирующего потока
+ * @details Часть алгоритма Диница.
+ * @param network
+ * @param u Номер вершины, из которой производим поиск.
+ * @param minC Минимальная пропускная способность дополняющей сети на пройденном пути.
+ * @return Сколько удалось пропустить по этому пути.
+ */
+int64_t find_block_flow(FlowNetwork &network, size_t u, int64_t minC) {
     assert(minC >= 0);
     if ((u == network.sink_index) || (minC == 0)) {
         return minC;
@@ -117,10 +145,10 @@ int64_t dfs(FlowNetwork &network, size_t u, int64_t minC) {
 
         if (network.nodes[edge.to].depth == network.nodes[u].depth + 1) {
             // это условие эквивалентно поиску во вспомогательной слоистой сети
-            auto delta = dfs(network, edge.to, std::min(minC, edge.capacity - edge.flow));
+            auto delta = find_block_flow(network, edge.to, std::min(minC, edge.capacity - edge.flow));
             assert(delta >= 0);
             if (delta != 0) {
-                edge.flow += delta; // насыщаем рёбра по пути dfs
+                edge.flow += delta; // насыщаем рёбра по пути
                 assert(edge.flow <= edge.capacity);
                 assert(edge.flow >= -edge.capacity);
                 reverse_edge.flow -= delta;
@@ -134,22 +162,26 @@ int64_t dfs(FlowNetwork &network, size_t u, int64_t minC) {
     return 0;
 }
 
+/**
+ * @brief Поиск максимального потока алгоритмом Диница.
+ * @param network Сеть, в которой ищем поток.
+ * @return Значение максимального потока.
+ */
 int64_t find_max_flow_dinic(FlowNetwork &network) {
     int64_t maxFlow = 0;
-    while (bfs(network)) {  // пересчитываем d[i], заодно проверяем достижима ли t из s
+    while (measure_depth_vertices(network)) {  // пересчитываем d[i], заодно проверяем достижима ли t из s
         for (auto &node: network.nodes) {
             node.p = 0;  // заполняем p нулями
         }
-        auto flow = dfs(network, network.source_index, std::numeric_limits<int64_t>::max());
+        auto flow = find_block_flow(network, network.source_index, std::numeric_limits<int64_t>::max());
         while (flow != 0) {
             maxFlow += flow;
             assert(flow >= 0);
-            flow = dfs(network, network.source_index, std::numeric_limits<int64_t>::max());
+            flow = find_block_flow(network, network.source_index, std::numeric_limits<int64_t>::max());
         }
     }
     for (auto &node: network.nodes) {
-        for (auto& edge: node.edges)
-        {
+        for (auto &edge: node.edges) {
             assert(edge.flow == -network.nodes[edge.to].edges[edge.reverse_edge_index].flow);
         }
     }
@@ -239,13 +271,6 @@ void test_by_tus() {
     edges_idx.emplace_back(2, network.nodes[2].edges.size() - 1);
     auto max_flow = find_max_flow_dinic(network);
     assert(max_flow == 17);
-    /*assert(network.nodes[edges_idx[0].first].edges[edges_idx[0].second].flow == 10);
-    assert(network.nodes[edges_idx[1].first].edges[edges_idx[1].second].flow == 30);
-    assert(network.nodes[edges_idx[2].first].edges[edges_idx[2].second].flow == 20);
-    assert(network.nodes[edges_idx[3].first].edges[edges_idx[3].second].flow == 20);
-    assert(network.nodes[edges_idx[4].first].edges[edges_idx[4].second].flow == 20);
-    assert(network.nodes[edges_idx[5].first].edges[edges_idx[5].second].flow == 10);
-    assert(network.nodes[edges_idx[5].first].edges[edges_idx[5].second].flow == 7);*/
 }
 
 void run_all_tests() {
@@ -257,9 +282,6 @@ void run_all_tests() {
 // Конец тестов
 
 int main(int argc, char *argv[]) {
-    //run_all_tests();
-    //return 0;
-
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
     std::cout.tie(nullptr);
