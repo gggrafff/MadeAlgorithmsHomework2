@@ -1,1 +1,1 @@
-add_executable(task1_1 main.cpp)
+add_executable(task1_1 main.cpp ../../10_interpreter/Interpreter/main.cpp)

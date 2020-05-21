@@ -501,7 +501,7 @@ void test_big_numbers() {
     assert(result == true_result);
 }
 
-void test_random() {
+void test_random_big() {
     std::vector<int64_t> numbers;
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
@@ -596,7 +596,7 @@ void test_random() {
 void run_all_tests() {
     test_from_task_1();
     test_from_task_2();
-    test_random();
+    test_random_big();
     test_big_numbers();
     test_one_element_consistent();
     test_one_element_inconsistent();

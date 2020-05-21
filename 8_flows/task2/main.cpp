@@ -667,7 +667,7 @@ void test_five() {
     assert(count_min_cut == karger_count);
 }
 
-void test_random_sparse() {
+void test_random_big() {
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
     std::uniform_int_distribution<size_t> small_numbers_generator(0, 10);
@@ -744,7 +744,7 @@ void run_all_tests() {
     test_from_task();
     test_by_tus();
     test_five();
-    test_random_sparse();
+    test_random_big();
     test_random_dense();
 }
 

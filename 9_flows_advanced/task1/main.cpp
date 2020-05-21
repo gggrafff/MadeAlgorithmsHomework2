@@ -250,7 +250,7 @@ public:
      * @details Для выбора пути используется алгоритм Беллмана-Форда.
      * @return Минимальная стоимость максимального потока.
      */
-    int64_t find_max_flow_min_cost() {
+    int64_t find_max_flow_min_cost_bf() {
         // Беллмана-Форда алгоритм. Методом динамического программирования.
         const int64_t inf = std::numeric_limits<int64_t>::max();
 
@@ -313,7 +313,7 @@ public:
         }
 
         // Продолжим искать поток
-        return find_max_flow_min_cost();
+        return find_max_flow_min_cost_bf();
     }
 
     /**
@@ -536,11 +536,11 @@ void test_from_task_bf_iteration() {
     network.add_directed_edge(2, 1, 1, 1);
     network.add_directed_edge(1, 3, 2, 1);
     network.add_directed_edge(2, 3, 2, 3);
-    auto min_cost = network.find_max_flow_min_cost();
+    auto min_cost = network.find_max_flow_min_cost_bf();
     assert(min_cost == 12);
 }
 
-void test_random_sparse() {
+void test_random_big() {
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
     std::uniform_int_distribution<size_t> small_numbers_generator(0, 10);
@@ -576,7 +576,7 @@ void test_random_sparse() {
         auto max_flow = network1.find_max_flow_dinic();
         if(max_flow > 0){
             auto min_cost1 = network1.reduce_cost_max_flow();
-            auto min_cost2 = network2.find_max_flow_min_cost();
+            auto min_cost2 = network2.find_max_flow_min_cost_bf();
             assert(min_cost1 == min_cost2);
         }
     }
@@ -622,15 +622,12 @@ void run_all_tests() {
     test_rake();
     test_from_task_dinic_bf();
     test_from_task_bf_iteration();
-    test_random_sparse();
+    test_random_big();
 }
 
 // Конец тестов
 
 int main(int argc, char *argv[]) {
-    run_all_tests();
-    return 0;
-
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
     std::cout.tie(nullptr);
@@ -664,7 +661,7 @@ int main(int argc, char *argv[]) {
         auto min_cost = network.reduce_cost_max_flow();
         std::cout << min_cost;
     }
-    /*auto min_cost = network.find_max_flow_min_cost();
+    /*auto min_cost = network.find_max_flow_min_cost_bf();
     std::cout << min_cost;*/
 
     return 0;

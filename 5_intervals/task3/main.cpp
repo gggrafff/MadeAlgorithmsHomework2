@@ -416,7 +416,7 @@ void test_several_set() {
     assert(tree.query(1, 3) == -7);
 }
 
-void test_random() {
+void test_random_big() {
     std::vector<int64_t> numbers;
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
@@ -509,7 +509,7 @@ void run_all_tests() {
     test_from_task();
     test_several_set();
     test_set_update_set_update();
-    test_random();
+    test_random_big();
 }
 
 // Конец тестов
