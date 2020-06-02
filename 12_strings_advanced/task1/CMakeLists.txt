@@ -1,0 +1,1 @@
+add_executable(task12_1 main.cpp)

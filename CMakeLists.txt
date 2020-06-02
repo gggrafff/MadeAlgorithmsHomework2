@@ -13,6 +13,7 @@ add_subdirectory(8_flows)
 add_subdirectory(9_flows_advanced)
 add_subdirectory(10_interpreter)
 add_subdirectory(11_strings)
-
+add_subdirectory(12_strings_advanced)
+add_subdirectory(13_geometry)
 
 #Cxxdroid-binary: 4_numbers_advanced/task3_not_solved/task4_3

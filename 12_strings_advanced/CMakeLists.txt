@@ -1,4 +1,4 @@
-project(strings)
+project(strings_advanced)
 set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(task1)

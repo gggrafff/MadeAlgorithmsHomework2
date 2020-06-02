@@ -361,6 +361,27 @@ void test_banana() {
     assert(count_substrings == 15);
 }
 
+void test_abcde() {
+    const std::string original = "abcde";
+    SuffixArray suffix_array(original);
+    auto count_substrings = suffix_array.count_different_substrings();
+    assert(count_substrings == 15);
+}
+
+void test_aaaaa() {
+    const std::string original = "aaaaa";
+    SuffixArray suffix_array(original);
+    auto count_substrings = suffix_array.count_different_substrings();
+    assert(count_substrings == 5);
+}
+
+void test_abacabadabacaba() {
+    const std::string original = "abacabadabacaba";
+    SuffixArray suffix_array(original);
+    auto count_substrings = suffix_array.count_different_substrings();
+    assert(count_substrings == 85);
+}
+
 void test_random_big() {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -394,28 +415,6 @@ void test_random_small() {
         assert(count1 == count2);
     }
 }
-
-void test_abcde() {
-    const std::string original = "abcde";
-    SuffixArray suffix_array(original);
-    auto count_substrings = suffix_array.count_different_substrings();
-    assert(count_substrings == 15);
-}
-
-void test_aaaaa() {
-    const std::string original = "aaaaa";
-    SuffixArray suffix_array(original);
-    auto count_substrings = suffix_array.count_different_substrings();
-    assert(count_substrings == 5);
-}
-
-void test_abacabadabacaba() {
-    const std::string original = "abacabadabacaba";
-    SuffixArray suffix_array(original);
-    auto count_substrings = suffix_array.count_different_substrings();
-    assert(count_substrings == 85);
-}
-
 
 void run_all_tests() {
     test_from_task();
