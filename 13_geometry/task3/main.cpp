@@ -1,103 +1,43 @@
-#include <utility>
-
 /*
- * B. Пересечение полуплоскостей
+ * C. Площади
  * ограничение по времени на тест 2 секунды
  * ограничение по памяти на тест 256 мегабайт
  * ввод стандартный ввод
  * вывод стандартный вывод
  *
- * Эта задача не имеет условия.
+ * Даны n прямых на плоскости. Они делят плоскость на части, некоторые из которых конечны, некоторые — бесконечны. Найдите площади всех конечных частей.
  *
  * Входные данные
- * Первая строка входного файла содержит единственное число n — число полуплоскостей,
- * площадь пересечения которых вам требуется посчитать (3 ≤ n ≤ 2000).
- * Следующие n строк содержат по три целых числа ai, bi, ci, по модулю не превосходящих 10000,
- * задающие полуплоскость ((x, y) принадлежит i-й полуплоскости, если a·x + b·y + c ≥ 0).
- * Гарантируется, что площадь пересечения конечна.
+ * Первая строка содержит n — число прямых (1 ≤ n ≤ 80).
+ * Каждая из следующих n строк содержит четыре целых числа x1, y1, x2 и y2 — координаты двух различных точек
+ * на очередной прямой. Координаты не превышают 100 по абсолютной величине.
+ * Прямые попарно различны.
  *
  * Выходные данные
- * Одно вещественное число — площадь пересечения полуплоскостей с точностью до 10^-6.
+ * В первой строке выведите k — число конечных частей.
+ * В следующих k строках выведите их площади в неубывающем порядке.
+ * Точность должна быть не хуже 10^-4. Не рассматривайте части, имеющие площадь меньшую 10^-8.
  *
  * Пример
  * Входные данные
- * 3
- * 1 0 0
- * 0 1 0
- * -1 -1 1
+ * 5
+ * 0 0 1 0
+ * 1 0 1 1
+ * 1 1 0 1
+ * 0 1 0 0
+ * 0 0 1 1
+ *
  * Выходные данные
+ * 2
+ * 0.5000000000
  * 0.5000000000
  */
 
 /*
- * Подробнее о пересечении полуплоскостей:
- * https://neerc.ifmo.ru/wiki/index.php?title=Пересечение_полуплоскостей,_связь_с_выпуклыми_оболочками
- * https://textarchive.ru/c-2348074-p2.html
- * https://algocode.ru/files/course_aspb2019/main.pdf
- * http://umqra.blogspot.com/2014/06/blog-post.html?m=1
- *
- * Построение прямой по двум точкам:
- * http://www.math.by/geometry/eqline.html
- *
- * Вспомогательные материалы о пересечении прямых:
- * http://e-maxx.ru/algo/lines_intersection
- * http://algolist.manual.ru/maths/geom/intersect/lineline2d.php
- * https://gospodaretsva.com/urok-31-proverka-prinadlezhnosti-tochki-otrezku.html
- * https://ru.onlinemschool.com/math/library/analytic_geometry/lines_intersection/
- *
- * Просто интересный справочник по вычислительной геометрии:
- * https://vlecomte.github.io/cp-geo.pdf
- * И ещё один мануал с задачами:
- * http://algolist.manual.ru/olimp/geo_prb.php
- * И ещё:
- * https://algocode.ru/files/course_aspb2019/main.pdf
- *
- * О выпуклых оболочках:
- * https://neerc.ifmo.ru/wiki/index.php?title=Статические_выпуклые_оболочки:_Джарвис,_Грэхем,_Эндрю,_Чен,_QuickHull
- * https://e-maxx.ru/algo/convex_hull_graham
- * https://ru.wikipedia.org/wiki/Алгоритм_Грэхема
- * https://algorithmica.org/ru/convex-hulls
- *
- * О площади многоугольников:
- * https://ru.wikipedia.org/wiki/Формула_площади_Гаусса
+ * Решение похоже на один из подходов к решению задачи B.
+ * Создаём большой многоугольник, делим его прямыми на части.
+ * Только теперь сохраняем части по обе стороны от прямой.
  */
-
-/*
- * В этом файле реализовано два различных подхода к решению:
- * 1. Берём большого размера прямоугольник и пересекаем его с полуплоскостями.
- * 2. Алгоритм:
- *      Отсортировать все полуплоскости по углу наклона;
- *      Запустить обход Грэхема для полуплоскостей, смотрящих вниз (с предикатом-определителем);
- *      Запустить обход Грэхема для полуплоскостей, смотрящих вверх;
- *      Пересечь две цепочки.
- *
- *      От пересечения цепочек напрямую зависит фигура пересечения:
- *      неограниченная область получается если одна из цепочек пуста,
- *      а ограниченная — когда обе цепочки не пусты и пересекаются.
- * Оба алгоритма проходят контест примерно с одинаковым расходом ресурсов.
- * Первый алгоритм проще, его легче писать и читать.
- * Второй... Потенциально быстрее. Но реализация здесь далеко не самая эффективная и красивая.
- * В некоторых местах я расставил To Do, которые указывают на недостатки реализации.
- * Поправить всё до сдачи времени не хватило.
- *
- * Первый подход
- * Создаём большой многоугольник:
- * Polygon<double> figure({
- *      Point<double>{-10000, -10000},
- *      Point<double>{10000, -10000},
- *      Point<double>{10000, 10000},
- *      Point<double>{-10000, 10000}});
- * Пересекаем его с каждой из полуплоскостей:
- * figure.cut(halfplanes);
- *
- * Второй подход
- * Создаём многоугольник из пересечения полуплоскостей:
- * Polygon<double> figure(halfplanes);
- *
- * Почти всё реализовано с использованием темплейтов, чтобы была возможность гибко использовать целочисленные типы
- * и типы с плавающей точкой в одном решении.
- */
-
 
 
 #include <random>
@@ -110,10 +50,6 @@
 #include <utility>
 #include <iomanip>
 #include <optional>
-#include <tuple>
-#include <deque>
-#include <stack>
-
 
 /**
  * @brief Проверка на равенство чисел с плавающей точкой.
@@ -779,6 +715,24 @@ public:
     explicit Polygon(std::vector<Point<NumberType>> points) : points_{std::move(points)} {}
 
     /**
+     * @brief Конструктор по умолчанию.
+     */
+    Polygon() = default;
+
+    /**
+     * @brief Оператор присваивания (копирования).
+     * @param other Копируемый многоугольник.
+     * @return Ссылка на новый объект.
+     */
+    Polygon& operator=(const Polygon& other) // copy assignment
+    {
+        if (this != &other) { // self-assignment check expected
+            points_ = other.points_;
+        }
+        return *this;
+    }
+
+    /**
      * @brief Построить многоугольник как результат пересечения полуплоскостей.
      * @tparam NumberType2 Тип данных для хранения коэффициентов полуплоскостей.
      * @param halfplanes Массив полуплоскостей.
@@ -1102,6 +1056,26 @@ public:
     }
 
     /**
+     * @brief Найти пересечение многоугольника с набором прямых.
+     * @tparam NumberType2 Тип данных для хранения коэффициентов полуплоскостей.
+     * @param halfplanes Массив полуплоскостей.
+     */
+    template<typename NumberType2>
+    std::vector<Polygon<NumberType>> cut(const std::vector<Line<NumberType2>> &lines) const {
+        std::vector<Polygon<NumberType>> all_polygons;
+        all_polygons.push_back(*this);
+        for (const auto &line: lines) {
+            std::vector<Polygon<NumberType>> splited_polygons;
+            for (const auto &polygon: all_polygons) {
+                auto new_polygons = polygon.cut(line);
+                splited_polygons.insert(splited_polygons.end(), new_polygons.begin(), new_polygons.end());
+            }
+            all_polygons = splited_polygons;
+        }
+        return all_polygons;
+    }
+
+    /**
      * @brief Найти пересечение многоугольника с полуплоскостью.
      * @tparam NumberType2 Тип данных для хранения коэффициентов полуплоскости.
      * @param halfplane Полуплоскость.
@@ -1146,617 +1120,103 @@ public:
         points_ = new_points;  // сохраним новый многоугольник
     }
 
+    /**
+     * @brief Найти рассечение многоугольника прямой.
+     * @tparam NumberType2 Тип данных для хранения коэффициентов полуплоскости.
+     * @param line Прямая
+     * @return Массив с двумя многоугольниками, полученными после рассечения.
+     */
+    template<typename NumberType2>
+    std::vector<Polygon<NumberType>> cut(const Line<NumberType2> &line) const {
+        HalfPlane<NumberType2> halfplane(line);
+
+        if (points_.empty()) {
+            return {};
+        }
+
+        std::vector<Point<NumberType>> contained_figure;  // вершины многоугольника - результат пересечения
+        std::vector<Point<NumberType>> not_contained_figure;  // вершины многоугольника - результат пересечения
+
+        for (int i = 0; i < points_.size() - 1; ++i) {
+            bool contained = halfplane.contain_point(points_[i]);
+            bool contained_next = halfplane.contain_point(points_[i + 1]);
+
+            if (contained) {  // если точка принадлежит полуплоскости, то она принадлежит одной фигуре, иначе - другой
+                contained_figure.push_back(points_[i]);
+            } else {
+                not_contained_figure.push_back(points_[i]);
+            }
+
+            if (contained ^ contained_next) {  // если текущая точка принадлежит, а следующая - нет, или наоборот
+                // то между этими точками полуплоскость пересекает границу многоугольника
+                // ищем точку пересечения, она принадлежит результату пересечения
+                auto intersection = halfplane.calculate_intersection(Line<NumberType>(points_[i], points_[i + 1]));
+                assert(intersection.point.has_value());
+                contained_figure.emplace_back(intersection.point.value());
+                not_contained_figure.emplace_back(intersection.point.value());
+            }
+        }
+
+        // отдельно обработаем первую и последнюю точки
+        bool contained = halfplane.contain_point(points_[points_.size() - 1]);
+        bool contained_next = halfplane.contain_point(points_[0]);
+        if (contained) {
+            contained_figure.push_back(points_[points_.size() - 1]);
+        } else {
+            not_contained_figure.push_back(points_[points_.size() - 1]);
+        }
+        if (contained ^ contained_next) {
+            auto intersection = halfplane.calculate_intersection(
+                    Line<NumberType>(points_[points_.size() - 1], points_[0]));
+            assert(intersection.point.has_value());
+            contained_figure.emplace_back(intersection.point.value());
+            not_contained_figure.emplace_back(intersection.point.value());
+        }
+        std::vector<Polygon<NumberType>> result;
+        if (!contained_figure.empty()){
+            result.emplace_back(contained_figure);
+        }
+        if (!not_contained_figure.empty()){
+            result.emplace_back(not_contained_figure);
+        }
+        return result;  // вернём один-два новых многоугольника
+    }
+
+    /**
+     * @brief Проверить, есть ли у многоугольника точка с нужной координатой.
+     * @param coordinate Координата.
+     * @return True, если точка с нужным значением координаты присутствует.
+     */
+    bool has_coordinate(NumberType coordinate) const {
+        if (points_.empty()) {
+            return false;
+        }
+        for (const auto &point: points_) {
+            if (is_equal(point.get_x(), coordinate, EPS_)) {
+                return true;
+            }
+            if (is_equal(point.get_y(), coordinate, EPS_)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 private:
     std::vector<Point<NumberType>> points_;
+    const double EPS_ = 1e-8;
 };
+
 
 // Начало тестов
 
 void test_from_task() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.5, 1e-6));
+
 }
 
-void test_double_figure() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.5, 1e-6));
-}
-
-void test_rhombus() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  -1, 1}},
-            {{-1, 1,  1}},
-            {{-1, -1, 1}},
-            {{1,  1,  1}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 2.0, 1e-6));
-}
-
-void test_triangle_in_rhombus() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  -1, 1}},
-            {{-1, 1,  1}},
-            {{-1, -1, 1}},
-            {{1,  1,  1}},
-
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.5, 1e-6));
-}
-
-void test_square() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  -1, 1}},
-            {{0,  1,  0}},
-            {{-1, 0,  1}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 1.0, 1e-6));
-}
-
-void test_square_intersect_rhombus() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  -1, 1}},
-            {{1,  -1, 1}},
-            {{-1, 1,  1}},
-            {{0,  1,  0}},
-            {{-1, 0,  1}},
-            {{-1, -1, 1}},
-            {{1,  1,  1}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.5, 1e-6));
-}
-
-void test_octagon() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  -1, 3}},
-            {{-1, -1, 3}},
-            {{1,  1,  3}},
-            {{-1, 1,  3}},
-            {{0,  -1, 2}},
-            {{-1, 0,  2}},
-            {{1,  0,  2}},
-            {{0,  1,  2}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 14.0, 1e-6));
-}
-
-void test_square_intersect_rhombus_in_double_octagon() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            // square
-            {{1,  0,  0}},
-            {{0,  -1, 1}},
-            {{0,  1,  0}},
-            {{-1, 0,  1}},
-            // rhombus
-            {{1,  -1, 1}},
-            {{-1, 1,  1}},
-            {{-1, -1, 1}},
-            {{1,  1,  1}},
-            // octagon
-            {{1,  -1, 3}},
-            {{-1, -1, 3}},
-            {{1,  1,  3}},
-            {{-1, 1,  3}},
-            {{0,  -1, 2}},
-            {{-1, 0,  2}},
-            {{1,  0,  2}},
-            {{0,  1,  2}},
-            // octagon
-            {{1,  -1, 3}},
-            {{-1, -1, 3}},
-            {{1,  1,  3}},
-            {{-1, 1,  3}},
-            {{0,  -1, 2}},
-            {{-1, 0,  2}},
-            {{1,  0,  2}},
-            {{0,  1,  2}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.5, 1e-6));
-}
-
-void test_zero() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{0, -1, -1}},
-            {{0, 1,  -1}},
-            {{1, 1,  0}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.0, 1e-6));
-}
-
-void test_zero_line() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{0, -1, 1}},
-            {{0, 1,  -1}},
-            {{1, 1,  0}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.0, 1e-6));
-}
-
-void test_trapeze() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            // octagon
-            {{1,  -1, 3}},
-            {{-1, -1, 3}},
-            {{1,  1,  3}},
-            {{-1, 1,  3}},
-            {{0,  -1, 2}},
-            {{-1, 0,  2}},
-            {{1,  0,  2}},
-            {{0,  1,  2}},
-            // line
-            {{0,  1,  -1}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 3.0, 1e-6));
-}
-
-void test_zero_rectangle() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{-1, 0,  2}},
-            {{1,  0,  2}},
-
-            {{0,  -1, -1}},
-            {{0,  1,  -1}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.0, 1e-6));
-}
-
-void test_zero_trapeze() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            // octagon
-            {{1,  -1, 3}},
-            {{-1, -1, 3}},
-            {{1,  1,  3}},
-            {{-1, 1,  3}},
-            {{0,  -1, 2}},
-            {{-1, 0,  2}},
-            {{1,  0,  2}},
-            {{0,  1,  2}},
-            // line
-            {{0,  -1, -1}},
-            {{0,  1,  -1}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.0, 1e-6));
-}
-
-void test_equivalent_lines() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-
-            {{4,  0,  0}},
-            {{0,  10, 0}},
-            {{-2, -2, 2}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.5, 1e-6));
-};
-
-void test_zero_triangle_with_line() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-            {{0,  3,  -4}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.0, 1e-6));
-}
-
-void test_triangle_with_three_lines() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-
-            {{-1, -8, 6}},
-            {{2,  -6, -10}},
-            {{0,  -7, 9}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.0, 1e-6));
-}
-
-void test_triangle_with_three_lines_2() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-
-            {{-1, 9,  -5}},
-            {{2,  -8, 9}},
-            {{2,  -7, 9}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(area < 0.5);
-    assert(area > 0);
-}
-
-void test_triangle_with_random_lines_small() {
-    auto test_count = 1000;
-    for (auto i = 0; i < test_count; ++i) {
-        std::vector<HalfPlane<int64_t>> halfplanes{
-                {{1,  0,  0}},
-                {{0,  1,  0}},
-                {{-1, -1, 1}},
-        };
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<int32_t> small_numbers_generator(-10, 10);
-        auto count = (small_numbers_generator(rd) + 11);
-        for (auto hp_no = 0; hp_no < count; ++hp_no) {
-            auto a = small_numbers_generator(rd);
-            auto b = small_numbers_generator(rd);
-            auto c = small_numbers_generator(rd);
-            if (!(a == 0 && b == 0)) {
-                halfplanes.emplace_back(Line<int64_t>(a, b, c));
-            }
-        }
-        Polygon<double> figure(halfplanes);
-        double area = figure.calculate_area();
-        assert(is_equal(area, 0.5, 1e-6) || area < 0.5);
-    }
-}
-
-void test_triangle_with_random_lines_large() {
-    auto test_count = 100;
-    for (auto i = 0; i < test_count; ++i) {
-        std::vector<HalfPlane<int64_t>> halfplanes{
-                {{1,  0,  0}},
-                {{0,  1,  0}},
-                {{-1, -1, 1}},
-        };
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<int32_t> small_numbers_generator(-20, 20);
-        std::uniform_int_distribution<size_t> big_numbers_generator(1, 100);
-        auto count = big_numbers_generator(rd);
-        for (auto hp_no = 0; hp_no < count; ++hp_no) {
-            auto a = small_numbers_generator(rd);
-            auto b = small_numbers_generator(rd);
-            auto c = small_numbers_generator(rd);
-            if (!(a == 0 && b == 0)) {
-                halfplanes.emplace_back(Line<int64_t>(a, b, c));
-            }
-        }
-        Polygon<double> figure(halfplanes);
-        double area = figure.calculate_area();
-        assert(is_equal(area, 0.5, 1e-6) || area < 0.5);
-    }
-}
-
-void test_rhombus_with_random_lines_small() {
-    auto test_count = 1000;
-    for (auto i = 0; i < test_count; ++i) {
-        std::vector<HalfPlane<int64_t>> halfplanes{
-                {{1,  -1, 1}},
-                {{-1, 1,  1}},
-                {{-1, -1, 1}},
-                {{1,  1,  1}},
-        };
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<int32_t> small_numbers_generator(-10, 10);
-        auto count = (small_numbers_generator(rd) + 11);
-        for (auto hp_no = 0; hp_no < count; ++hp_no) {
-            auto a = small_numbers_generator(rd);
-            auto b = small_numbers_generator(rd);
-            auto c = small_numbers_generator(rd);
-            if (!(a == 0 && b == 0)) {
-                halfplanes.emplace_back(Line<int64_t>(a, b, c));
-            }
-        }
-        Polygon<double> figure(halfplanes);
-        double area = figure.calculate_area();
-        assert(is_equal(area, 2.0, 1e-6) || area < 2.0);
-    }
-}
-
-void test_octagon_with_random_lines_small() {
-    auto test_count = 1000;
-    for (auto i = 0; i < test_count; ++i) {
-        std::vector<HalfPlane<int64_t>> halfplanes{
-                {{1,  -1, 3}},
-                {{-1, -1, 3}},
-                {{1,  1,  3}},
-                {{-1, 1,  3}},
-                {{0,  -1, 2}},
-                {{-1, 0,  2}},
-                {{1,  0,  2}},
-                {{0,  1,  2}},
-        };
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<int32_t> small_numbers_generator(-10, 10);
-        auto count = (small_numbers_generator(rd) + 11);
-        for (auto hp_no = 0; hp_no < count; ++hp_no) {
-            auto a = small_numbers_generator(rd);
-            auto b = small_numbers_generator(rd);
-            auto c = small_numbers_generator(rd);
-            if (!(a == 0 && b == 0)) {
-                halfplanes.emplace_back(Line<int64_t>(a, b, c));
-            }
-        }
-        Polygon<double> figure(halfplanes);
-        double area = figure.calculate_area();
-        assert(is_equal(area, 14.0, 1e-6) || area < 14.0);
-    }
-}
-
-void test_octagon_with_random_lines_large() {
-    auto test_count = 100;
-    for (auto i = 0; i < test_count; ++i) {
-        std::vector<HalfPlane<int64_t>> halfplanes{
-                {{1,  -1, 3}},
-                {{-1, -1, 3}},
-                {{1,  1,  3}},
-                {{-1, 1,  3}},
-                {{0,  -1, 2}},
-                {{-1, 0,  2}},
-                {{1,  0,  2}},
-                {{0,  1,  2}},
-        };
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<int32_t> small_numbers_generator(-20, 20);
-        std::uniform_int_distribution<size_t> big_numbers_generator(1, 100);
-        auto count = big_numbers_generator(rd);
-        for (auto hp_no = 0; hp_no < count; ++hp_no) {
-            auto a = small_numbers_generator(rd);
-            auto b = small_numbers_generator(rd);
-            auto c = small_numbers_generator(rd);
-            if (!(a == 0 && b == 0)) {
-                halfplanes.emplace_back(Line<int64_t>(a, b, c));
-            }
-        }
-        Polygon<double> figure(halfplanes);
-        double area = figure.calculate_area();
-        assert(is_equal(area, 14.0, 1e-6) || area < 14.0);
-    }
-}
-
-void test_triangle_in_halfplane() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-            {{-3, -3, 5}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.5, 1e-6));
-}
-
-void test_triangle_out_halfplane() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-            {{4,  1,  -5}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.0, 1e-6));
-}
-
-void test_triangle_through_halfplane() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-            {{10, 3,  -8}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(area > 0.0);
-    assert(area < 0.5);
-}
-
-void test_triangle_with_two_halfplanes_1() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-            {{4,  -5, 5}},
-            {{2,  -3, -5}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.0, 1e-6));
-}
-
-void test_triangle_with_two_halfplanes_2() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-            {{2,  3,  -5}},
-            {{-1, -5, -5}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.0, 1e-6));
-}
-
-void test_rhombus_with_four_halfplanes() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  -1, 1}},
-            {{-1, 1,  1}},
-            {{-1, -1, 1}},
-            {{1,  1,  1}},
-
-            {{5,  -3, 9}},
-            {{5,  -2, -5}},
-            {{0,  -6, 8}},
-            {{-2, 1,  9}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.0, 1e-6));
-}
-
-void test_triangle_with_halfplanes_rare() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-
-            //{{6,  7,  -5}},
-            //{{8, 0, 1}},
-            //{{6,  3,  -2}},
-            //{{-9, 10, -5}},
-            {{-3, -4, 10}},
-            {{0,  -1, 10}},
-    };
-    Polygon<double> figure(halfplanes);
-    double area = figure.calculate_area();
-    assert(is_equal(area, 0.5, 1e-6));
-}
-
-void test_different_algorithms_small() {
-    auto test_count = 1000;
-    for (auto i = 0; i < test_count; ++i) {
-        std::vector<HalfPlane<int64_t>> halfplanes{
-                {{1,  0,  0}},
-                {{0,  1,  0}},
-                {{-1, -1, 1}},
-        };
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<int32_t> small_numbers_generator(-10, 10);
-        auto count = (small_numbers_generator(rd) + 11);
-        for (auto hp_no = 0; hp_no < count; ++hp_no) {
-            auto a = small_numbers_generator(rd);
-            auto b = small_numbers_generator(rd);
-            auto c = small_numbers_generator(rd);
-            if (!(a == 0 && b == 0)) {
-                halfplanes.emplace_back(Line<int64_t>(a, b, c));
-            }
-        }
-        Polygon<double> figure1(halfplanes);
-        Polygon<double> figure2(
-                {Point<double>{-10000, -10000}, Point<double>{10000, -10000}, Point<double>{10000, 10000},
-                 Point<double>{-10000, 10000}});
-        figure2.cut(halfplanes);
-        double area1 = figure1.calculate_area();
-        double area2 = figure2.calculate_area();
-        assert(is_equal(area1, area2, 1e-6));
-    }
-}
-
-void test_triangle_in_halfplane_different_algorithms() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-
-            {{-4, -1, 8}},
-    };
-    Polygon<double> figure1(halfplanes);
-    Polygon<double> figure2({Point<double>{-10000, -10000}, Point<double>{10000, -10000}, Point<double>{10000, 10000},
-                             Point<double>{-10000, 10000}});
-    figure2.cut(halfplanes);
-    double area1 = figure1.calculate_area();
-    double area2 = figure2.calculate_area();
-    assert(is_equal(area1, area2, 1e-6));
-}
-
-void test_triangle_with_two_halfplanes_different_algorithms() {
-    std::vector<HalfPlane<int64_t>> halfplanes{
-            {{1,  0,  0}},
-            {{0,  1,  0}},
-            {{-1, -1, 1}},
-
-            {{-5, 5,  1}},
-            {{9,  -8, -2}},
-    };
-    Polygon<double> figure1(halfplanes);
-    Polygon<double> figure2({Point<double>{-10000, -10000}, Point<double>{10000, -10000}, Point<double>{10000, 10000},
-                             Point<double>{-10000, 10000}});
-    figure2.cut(halfplanes);
-    double area1 = figure1.calculate_area();
-    double area2 = figure2.calculate_area();
-    assert(is_equal(area1, area2, 1e-6));
-}
 
 void run_all_tests() {
     test_from_task();
-    test_rhombus();
-    test_square();
-    test_octagon();
-    test_double_figure();
-    test_triangle_in_rhombus();
-    test_triangle_in_halfplane();
-    test_square_intersect_rhombus();
-    test_square_intersect_rhombus_in_double_octagon();
-    test_zero();
-    test_zero_line();
-    test_trapeze();
-    test_zero_rectangle();
-    test_zero_trapeze();
-    test_equivalent_lines();
-    test_zero_triangle_with_line();
-    test_triangle_with_two_halfplanes_1();
-    test_triangle_with_two_halfplanes_2();
-    test_triangle_out_halfplane();
-    test_triangle_with_three_lines();
-    test_triangle_with_three_lines_2();
-    test_triangle_through_halfplane();
-    test_rhombus_with_four_halfplanes();
-    test_triangle_with_halfplanes_rare();
-    test_triangle_with_random_lines_small();
-    test_rhombus_with_random_lines_small();
-    test_octagon_with_random_lines_small();
-    test_triangle_with_random_lines_large();
-    test_octagon_with_random_lines_large();
-    test_triangle_in_halfplane_different_algorithms();
-    test_triangle_with_two_halfplanes_different_algorithms();
-    test_different_algorithms_small();
 }
 
 // Конец тестов
@@ -1769,27 +1229,44 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         if (std::string(argv[1]) == "test")  // запуск тестов
         {
-            //run_all_tests();
-            //тесты пришлось убрать, так как размер решения превысил допустимое значение на cf
+            run_all_tests();
             return 0;
         }
     }
 
     // Решение задачи
-    size_t N{0};
-    std::cin >> N;
-    std::vector<HalfPlane<int64_t>> halfplanes;
-    for (size_t i = 0; i < N; ++i) {
-        int64_t a{0}, b{0}, c{0};
-        std::cin >> a >> b >> c;
-        halfplanes.emplace_back(Line<int64_t>(a, b, c));
+    size_t n{0};
+    std::cin >> n;
+    std::vector<Line<int64_t>> lines;
+    for (size_t i=0; i < n; ++i) {
+        int64_t x1{0}, y1{0}, x2{0}, y2{0};
+        std::cin >>x1>>y1>>x2>>y2;
+        lines.emplace_back(Point<int64_t>{x1,y1}, Point<int64_t>{x2,y2});
     }
-    Polygon<double> figure(halfplanes);
-    /*Polygon<double> figure({Point<double>{-10000, -10000}, Point<double>{10000, -10000}, Point<double>{10000, 10000}, Point<double>{-10000, 10000}});
-    figure.cut(halfplanes);*/
-    double area = figure.calculate_area();
+    const double MAX_COORDINATE = 1e6;
+    Polygon<double> plane({
+        Point<double>{-MAX_COORDINATE, -MAX_COORDINATE},
+        Point<double>{MAX_COORDINATE, -MAX_COORDINATE},
+        Point<double>{MAX_COORDINATE, MAX_COORDINATE},
+        Point<double>{-MAX_COORDINATE, MAX_COORDINATE}
+    });
+    auto figures = plane.cut(lines);
+    std::vector<double> areas;
+    size_t count = 0;
+    for(const auto& figure: figures) {
+        if (!figure.has_coordinate(MAX_COORDINATE) && !figure.has_coordinate(-MAX_COORDINATE)) {
+            auto current_area = figure.calculate_area();
+            if (!is_equal(current_area, 0.0, 1e-8)){
+                count += 1;
+                areas.push_back(current_area);
+            }
+        }
+    }
     std::cout << std::setprecision(10) << std::fixed;
-    std::cout << area;
-
+    std::cout << count << "\n";
+    std::sort(areas.begin(), areas.end());
+    for(auto area: areas){
+        std::cout << area << "\n";
+    }
     return 0;
 }
