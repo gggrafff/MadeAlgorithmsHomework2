@@ -43,8 +43,9 @@
  */
 
 /*
- * Подробнее о:
- *
+ * Дополнительные материалы:
+ * https://eduardgorbunov.github.io/assets/files/amc_778_seminar_08.pdf
+ * https://cp-algorithms.com/algebra/fft.html
  */
 
 
@@ -135,6 +136,43 @@ public:
     }
 
     /**
+     * @brief Преобразование Фурье для двух вещественных сигналов.
+     * @details Вещественные сигналы объединяются и производится комплексное преобразование.
+     * @param x Первый сигнал.
+     * @param y Второй сигнал.
+     * @return Кортеж из двух спектров.
+     */
+    static std::tuple<std::vector<std::complex<double>>, std::vector<std::complex<double>>>
+    double_transfrom(std::vector<double> x, std::vector<double> y) {
+        using namespace std::complex_literals;
+
+        x.resize(std::max(x.size(), y.size()));
+        y.resize(std::max(x.size(), y.size()));
+
+        // z(n) = x(n) + iy(n)
+        // x(n) = (z(n) + z(n)∗)/2
+        // y(n) = −i(z(n) − z(n)∗)/2
+        std::vector<std::complex<double>> joined;
+        for (size_t i = 0; i < x.size(); ++i) {
+            joined.emplace_back(x[i], y[i]);
+        }
+        auto fft_joined = transfrom(joined);
+
+        // FFT(x)[k] = (FFT(z)[k] + FFTN(z)[N − k]∗)/2
+        // FFT(x)[k] = -i(FFT(z)[k] - FFTN(z)[N − k]∗)/2
+        std::vector<std::complex<double>> fft_x, fft_y;
+        fft_x.push_back((fft_joined[0] + std::conj(fft_joined[0])) / 2.0);
+        fft_y.push_back(std::complex<double>(-1.0i) * (fft_joined[0] - std::conj(fft_joined[0])) / 2.0);
+
+        size_t N = fft_joined.size();
+        for (size_t i = 1; i < fft_joined.size(); ++i) {
+            fft_x.push_back((fft_joined[i] + std::conj(fft_joined[N - i])) / 2.0);
+            fft_y.push_back(std::complex<double>(-1.0i) * (fft_joined[i] - std::conj(fft_joined[N - i])) / 2.0);
+        }
+        return {fft_x, fft_y};
+    }
+
+    /**
      * @brief Произвести свёртку двух сигналов.
      * @tparam InputType Тип данных отсчётов входных сигналов.
      * @tparam OutputIntegerType Тип данных отсчётов свёртки. В данной реализации только целочисленный.
@@ -175,7 +213,13 @@ public:
         return result;
     }
 
-    static std::optional<size_t> find_substring(const std::string& text, const std::string& pattern) {
+    /**
+     * @brief Поиск подстроки в строке.
+     * @param text Строка, в которой ищем.
+     * @param pattern Подстрока, которую ищем.
+     * @return Позиция первого вхождения, если подстрока найдена.
+     */
+    static std::optional<size_t> find_substring(const std::string &text, const std::string &pattern) {
         auto matches = calculate_matches(text, pattern);
         auto match = std::find(matches.begin(), matches.end(), 0);
         if (match == matches.end()) {
@@ -184,15 +228,24 @@ public:
         return std::distance(matches.begin(), match);
     }
 
+    /**
+     * @brief Циклическая корреляционная функция.
+     * @details Скалярные произведения для всех циклических сдвигов строк друг относительно друга.
+     * @tparam InputType Тип данных отсчётов входного сигнала.
+     * @tparam OutputIntegerType Тип данных отсчётов корреляционной функции.
+     * @param lhs Первый сигнал.
+     * @param rhs Второй сигнал.
+     * @return Корреляционная функция, вычисленная с циклическими сдвигами.
+     */
     template<typename InputType, typename OutputIntegerType>
     static std::vector<OutputIntegerType> cyclic_correlation(std::vector<InputType> lhs, std::vector<InputType> rhs) {
         assert(lhs.size() == rhs.size());
 
-        // Инвертируем массив a и припишем к нему в конец n нулей
-        std::reverse(lhs.begin(),
-                     lhs.end());  // чтобы найти АКФ, умея находить свёртку, нужно инвертировать порядок отсчётов в одном из сигналов
+        // Чтобы найти КФ, умея находить свёртку, нужно инвертировать порядок отсчётов в одном из сигналов.
+        // Инвертируем первый массив и припишем к нему в конец n нулей.
+        std::reverse(lhs.begin(), lhs.end());
         lhs.resize(lhs.size() * 2, 0);
-        // а к массиву b — просто припишем самого себя
+        // А ко второму массиву просто припишем самого себя, чтобы имитировать циклические сдвиги.
         rhs.insert(rhs.end(), rhs.begin(), rhs.end());
 
         auto conv = convolution<InputType, OutputIntegerType>(lhs, rhs);
@@ -203,17 +256,57 @@ public:
 private:
     fft() = default;  // запретим создание экзампляров класса
 
-    static std::vector<size_t> calculate_matches(const std::string& text, std::string pattern) {
+    /**
+     * @brief Вычисление вектора совпадений для поиска подстроки в строке.
+     * @param text Строка, в которой ищем.
+     * @param pattern Строка, которую ищем.
+     * @return Вектор, в котором 0 в тех позициях, в которых подстрока входит в строку полностью.
+     */
+    static std::vector<size_t> calculate_matches(const std::string &text, std::string pattern) {
+        /*
+         * Идея БПФ-алгоритма поиска подстрок следующая.
+         * Нужно найти подстроку (образец) p[0]..p[m-1] в строке (тексте) t[0]..t[n-1],
+         * здесь p[i], t[j] - это символы некоторого алфавита.
+         * Говорят, что подстрока входит с i-й позиции,если p[j] == t[i+j], j=0..m-1.
+         * Если считать буквы алфавита различными целыми числами, то вхождение подстроки с i-й позиции эквивалентно
+         * обнулению суммы квадратов: B[i]=sum{(p[j] - t[i+j])^2} = sum{p[j]^2 - 2 * p[j] * t[i+j] + t[i+j]^2} = 0,
+         * а вычисление массива чисел B[i], i= 0..n-m позволяет определить все места вхождения подстроки в текст.
+         */
+        /*
+         * Рассмотрим два полинома степени не выше n:
+         * T(x) = t[n-1] * x^(n-1) + ... + t[1]*x + t[0],
+         * P(x) = p[0] * x^(m-1) + ... + p[m-1]
+         * Их произведение можно вычислить с помощью БПФ.
+         */
         std::reverse(pattern.begin(), pattern.end());
         auto conv = convolution<char, int64_t>({text.begin(), text.end()}, {pattern.begin(), pattern.end()});
-        auto s = std::accumulate(pattern.begin(), pattern.end(), 0, [](const auto &accum, const auto &b){ return accum + b * b;});
-        auto h = std::accumulate(text.begin(), text.begin() + pattern.size(), 0, [](const auto &accum, const auto &b){ return accum + b * b;});
+        /*
+         * Посмотрим на коэффициент их произведения C(x) при x^(m-1+i) (0<=i<=n-m):
+         * c[m-1+i] = sum(p[j] * t[j+i])
+         * Как видим, это одно из слагаемых для B[i].
+         * Таким образом, алгоритм для подсчета всех B[i] таков.
+         * Сначала вычисляем коэффициенты произведения C(x) указанных многочленов.
+         */
+        /*
+         * Вычисляем сумму квадратов S.
+         * Сумма S = sum(p[j]^2) присутствует как слагаемое в каждом B[i].
+         */
+        auto s = std::accumulate(pattern.begin(), pattern.end(), 0,
+                                 [](const auto &accum, const auto &b) { return accum + b * b; });
+        /*
+         * Считаем сумму первых m квадратов t[i], т.е. H = sum(t[i]^2, i=0..m-1)
+         */
+        auto h = std::accumulate(text.begin(), text.begin() + pattern.size(), 0,
+                                 [](const auto &accum, const auto &b) { return accum + b * b; });
         std::vector<size_t> b;
         size_t current_symbol_idx = pattern.size() - 1;
+        // Далее вычисляем B[0] = S - 2 * c[m-1] + H
         b.push_back(s - 2 * conv[current_symbol_idx] + h);
         current_symbol_idx += 1;
-        while(current_symbol_idx < text.size()){
-            b.push_back(b.back() + 2 * conv[current_symbol_idx - 1] - 2 * conv[current_symbol_idx] - text[b.size() - 1] * text[b.size() - 1] + text[current_symbol_idx] * text[current_symbol_idx]);
+        while (current_symbol_idx < text.size()) {
+            // Аналогично получим B[i] = B[i-1] + 2 * (c[m-2+i] - c[m-1+i]) − t[i-1]^2 + t[m-1+i]^2
+            b.push_back(b.back() + 2 * conv[current_symbol_idx - 1] - 2 * conv[current_symbol_idx] -
+                        text[b.size() - 1] * text[b.size() - 1] + text[current_symbol_idx] * text[current_symbol_idx]);
             current_symbol_idx += 1;
         }
         return b;
@@ -364,90 +457,88 @@ uint8_t fft::reverse_bits<uint8_t>(uint8_t input) {
     return table[input];
 }
 
+/**
+ * @brief Поэлементное умножение двух массивов.
+ * @tparam CollectionType Тип массивов.
+ * @param lhs Первый массив.
+ * @param rhs Второй массив.
+ * @return Поэлементное произведение.
+ */
+template<typename CollectionType>
+CollectionType piecemeal_multiplication(const CollectionType &lhs, const CollectionType &rhs) {
+    assert(lhs.size() == rhs.size());
+    CollectionType result;
+    result.reserve(lhs.size());
+    std::transform(
+            lhs.begin(), lhs.end(),
+            rhs.begin(),
+            std::back_inserter(result),
+            [](const auto &a, const auto &b) {
+                return a * b;
+            });
+    return result;
+}
+
+/**
+ * @brief Функция, непосредственно решающая задачу.
+ * @param first Первая строка.
+ * @param second Вторая строка.
+ * @return Кортеж: количество совпавших символов, сдвиг.
+ */
 std::tuple<size_t, size_t> solve_task(std::string first, std::string second) {
+    // С помощью fft мы умеем вычислять свёртку.
+    // Чтобы вычислить КФ с помощью операции свёртки, нужно развернуть один из операндов.
     std::reverse(first.begin(), first.end());
     first.resize(first.size() * 2, 0);
+    // Имитируем циклические сдвиги, продублировав строку.
     second.insert(second.end(), second.begin(), second.end());
 
-    std::vector<bool> first_only_a, first_only_c, first_only_g, first_only_t;
-    std::vector<bool> second_only_a, second_only_c, second_only_g, second_only_t;
-
+    // Будем отдельно подсчитывать совпадения для разных букв.
+    std::vector<double> first_only_a, first_only_c, first_only_g, first_only_t;
+    std::vector<double> second_only_a, second_only_c, second_only_g, second_only_t;
     for (auto c: first) {
-        first_only_a.push_back(c=='A');
-        first_only_c.push_back(c=='C');
-        first_only_g.push_back(c=='G');
-        first_only_t.push_back(c=='T');
+        first_only_a.push_back(c == 'A');
+        first_only_c.push_back(c == 'C');
+        first_only_g.push_back(c == 'G');
+        first_only_t.push_back(c == 'T');
     }
     for (auto c: second) {
-        second_only_a.push_back(c=='A');
-        second_only_c.push_back(c=='C');
-        second_only_g.push_back(c=='G');
-        second_only_t.push_back(c=='T');
+        second_only_a.push_back(c == 'A');
+        second_only_c.push_back(c == 'C');
+        second_only_g.push_back(c == 'G');
+        second_only_t.push_back(c == 'T');
     }
 
-    auto spectrum_first_a = fft::transfrom({first_only_a.begin(), first_only_a.end()});
-    auto spectrum_first_c = fft::transfrom({first_only_c.begin(), first_only_c.end()});
-    auto spectrum_first_g = fft::transfrom({first_only_g.begin(), first_only_g.end()});
-    auto spectrum_first_t = fft::transfrom({first_only_t.begin(), first_only_t.end()});
+    // Вычислим все спектры
+    auto[spectrum_first_a, spectrum_first_c] = fft::double_transfrom(first_only_a, first_only_c);
+    auto[spectrum_first_g, spectrum_first_t] = fft::double_transfrom(first_only_g, first_only_t);
+    auto[spectrum_second_a, spectrum_second_c] = fft::double_transfrom(second_only_a, second_only_c);
+    auto[spectrum_second_g, spectrum_second_t] = fft::double_transfrom(second_only_g, second_only_t);
 
-    auto spectrum_second_a = fft::transfrom({second_only_a.begin(), second_only_a.end()});
-    auto spectrum_second_c = fft::transfrom({second_only_c.begin(), second_only_c.end()});
-    auto spectrum_second_g = fft::transfrom({second_only_g.begin(), second_only_g.end()});
-    auto spectrum_second_t = fft::transfrom({second_only_t.begin(), second_only_t.end()});
+    // Найдём спектры свёрток
+    auto corr_a_spectrum = piecemeal_multiplication(spectrum_first_a, spectrum_second_a);
+    auto corr_c_spectrum = piecemeal_multiplication(spectrum_first_c, spectrum_second_c);
+    auto corr_g_spectrum = piecemeal_multiplication(spectrum_first_g, spectrum_second_g);
+    auto corr_t_spectrum = piecemeal_multiplication(spectrum_first_t, spectrum_second_t);
 
-    std::vector<std::complex<double>> conv_a_spectrum;
-    conv_a_spectrum.reserve(spectrum_first_a.size());
-    std::transform(
-            spectrum_first_a.begin(), spectrum_first_a.end(),
-            spectrum_second_a.begin(),
-            std::back_inserter(conv_a_spectrum),
-            [](const auto &lhs, const auto &rhs) {
-                return lhs * rhs;
-            });
-    std::vector<std::complex<double>> conv_c_spectrum;
-    conv_c_spectrum.reserve(spectrum_first_c.size());
-    std::transform(
-            spectrum_first_c.begin(), spectrum_first_c.end(),
-            spectrum_second_c.begin(),
-            std::back_inserter(conv_c_spectrum),
-            [](const auto &lhs, const auto &rhs) {
-                return lhs * rhs;
-            });
-    std::vector<std::complex<double>> conv_g_spectrum;
-    conv_g_spectrum.reserve(spectrum_first_g.size());
-    std::transform(
-            spectrum_first_g.begin(), spectrum_first_g.end(),
-            spectrum_second_g.begin(),
-            std::back_inserter(conv_g_spectrum),
-            [](const auto &lhs, const auto &rhs) {
-                return lhs * rhs;
-            });
-    std::vector<std::complex<double>> conv_t_spectrum;
-    conv_t_spectrum.reserve(spectrum_first_t.size());
-    std::transform(
-            spectrum_first_t.begin(), spectrum_first_t.end(),
-            spectrum_second_t.begin(),
-            std::back_inserter(conv_t_spectrum),
-            [](const auto &lhs, const auto &rhs) {
-                return lhs * rhs;
-            });
-
+    // Просуммируем спектры свёрток
     std::vector<std::complex<double>> sum_spectrums;
-    for (size_t i = 0; i < conv_a_spectrum.size(); ++i) {
-        sum_spectrums.push_back(conv_a_spectrum[i] + conv_c_spectrum[i] + conv_g_spectrum[i] + conv_t_spectrum[i]);
+    for (size_t i = 0; i < corr_a_spectrum.size(); ++i) {
+        sum_spectrums.push_back(corr_a_spectrum[i] + corr_c_spectrum[i] + corr_g_spectrum[i] + corr_t_spectrum[i]);
     }
 
-    auto conv_sum_samples = fft::transfrom(sum_spectrums, true);
-    std::vector<int64_t> conv_sum;
-    conv_sum.reserve(conv_sum_samples.size());
-    for (const auto &sample: conv_sum_samples) {
-        conv_sum.emplace_back(std::llround(sample.real()));
+    // Найдём сумму свёрток, произведя обратное преобразование
+    auto corr_sum_samples = fft::transfrom(sum_spectrums, true);
+    std::vector<int64_t> corr_sum;
+    corr_sum.reserve(corr_sum_samples.size());
+    for (const auto &sample: corr_sum_samples) {
+        corr_sum.emplace_back(std::llround(sample.real()));
     }
-    conv_sum.resize(first.size()*2-1);
-    conv_sum = {next(conv_sum.begin(), first.size() / 2 - 1), next(conv_sum.begin(), 2 * first.size() / 2 - 1)};
+    corr_sum = {next(corr_sum.begin(), first.size() / 2 - 1), next(corr_sum.begin(), 2 * first.size() / 2 - 1)};
 
-    auto max_corr = std::max_element(conv_sum.rbegin(), conv_sum.rend());
-    auto shift = std::distance(conv_sum.rbegin(), max_corr) + 1;
+    // Найдём максимальное совпадение и наилучший сдвиг
+    auto max_corr = std::max_element(corr_sum.rbegin(), corr_sum.rend());
+    auto shift = std::distance(corr_sum.rbegin(), max_corr) + 1;
     return {*max_corr, shift % (second.size() / 2)};
 }
 
@@ -460,8 +551,8 @@ void test_full_match() {
     std::string second = "ACGTACGTACGTACGT";
     auto[max_corr1, shift1] = solve_task(first, second);
     assert(max_corr1 == 16);
-    assert(shift1%4 == 0);
-    assert(shift1<16);
+    assert(shift1 % 4 == 0);
+    assert(shift1 < 16);
     assert(first[shift1] == second[0]);
 }
 
@@ -549,7 +640,7 @@ void test_random() {
             }
         }
         length = numbers_generator(rd) % 3 + 1;
-        for (auto i = 0; i < length; ++i) {
+        for (auto j = 0; j < length; ++j) {
             first.insert(first.end(), first.begin(), first.end());
         }
         auto shift = numbers_generator(rd) % first.size();
@@ -578,7 +669,6 @@ void test_random() {
             }
         }
         auto[max_corr1, shift1] = solve_task(first, second);
-        assert(max_corr1 != 0);
     }
 }
 
@@ -598,9 +688,6 @@ void run_all_tests() {
 // Конец тестов
 
 int main(int argc, char *argv[]) {
-    /*run_all_tests();
-    return 0;*/
-
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
     std::cout.tie(nullptr);
