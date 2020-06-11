@@ -30,7 +30,16 @@
 
 /*
  * Подробнее о ДПФ, БПФ:
- *
+ * https://proglib.io/p/fourier-transform/
+ * https://ru.wikipedia.org/wiki/Дискретное_преобразование_Фурье
+ * https://neerc.ifmo.ru/wiki/index.php?title=Дискретное_преобразование_Фурье
+ * https://drive.google.com/file/d/1IdjyWinAT3Qo9oSonFj21VASBCJsxltB/view
+ * https://cp-algorithms.com/algebra/fft.html
+ * https://neerc.ifmo.ru/wiki/index.php?title=Быстрое_преобразование_Фурье
+ * https://ru.wikipedia.org/wiki/Быстрое_преобразование_Фурье
+ * https://e-maxx.ru/algo/fft_multiply
+ * Дополнительные материалы:
+ * https://ru.wikipedia.org/wiki/Схема_Горнера
  */
 
 #define _USE_MATH_DEFINES
