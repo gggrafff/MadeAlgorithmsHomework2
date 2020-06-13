@@ -52,10 +52,10 @@
  */
 
 /*
- * Подробнее о:
- *
+ * Решение этой задачи - это слегка допиленное решение предыдущей задачи.
+ * При рассмотрении отдельных букв ставим единицы в векторах не только в позиции буквы,
+ * но и на k позиций влево и вправо.
  */
-
 
 #define _USE_MATH_DEFINES
 
@@ -75,6 +75,7 @@
 #include <numeric>
 #include <cctype>
 #include <utility>
+#include <queue>
 
 
 /**
@@ -110,6 +111,7 @@ public:
          * И так далее, наконец, на последнем шаге мы, получив результаты ДПФ для двух половинок вектора отсчётов,
          * применим к ним преобразование бабочки и получим ДПФ для всего вектора отсчётов.
          */
+
 
         for (size_t len = 2; len <= samples.size(); len <<= 1) {
             /*
@@ -364,19 +366,25 @@ private:
      */
     template<typename NumberType2>
     static NumberType2 reverse_bytes(NumberType2 input);
+
 };
 
 std::vector<std::complex<double>> fft::sort_by_reverse_index(const std::vector<std::complex<double>> &samples) {
+    static std::vector<size_t> reverse_bits_permutation;
+
     // Найдём нужную перестановку.
-    std::vector<size_t> indexes(samples.size());
-    size_t i = 0;
-    std::iota(indexes.begin(), indexes.end(), i++);
-    sort(indexes.begin(), indexes.end(), [&](size_t i, size_t j) { return reverse_bits(i) < reverse_bits(j); });
+    if (reverse_bits_permutation.size() != samples.size()) {
+        reverse_bits_permutation.resize(samples.size());
+        size_t i = 0;
+        std::iota(reverse_bits_permutation.begin(), reverse_bits_permutation.end(), i++);
+        sort(reverse_bits_permutation.begin(), reverse_bits_permutation.end(),
+             [&](size_t i, size_t j) { return reverse_bits(i) < reverse_bits(j); });
+    }
 
     // Пересортируем элементы
     std::vector<std::complex<double>> result;
     result.reserve(samples.size());
-    for (auto idx: indexes) {
+    for (auto idx: reverse_bits_permutation) {
         result.push_back(samples[idx]);
     }
 
@@ -469,29 +477,14 @@ uint8_t fft::reverse_bits<uint8_t>(uint8_t input) {
     return table[input];
 }
 
-/**
- * @brief Поэлементное умножение двух массивов.
- * @tparam CollectionType Тип массивов.
- * @param lhs Первый массив.
- * @param rhs Второй массив.
- * @return Поэлементное произведение.
- */
-template<typename CollectionType>
-CollectionType piecemeal_multiplication(const CollectionType &lhs, const CollectionType &rhs) {
-    assert(lhs.size() == rhs.size());
-    CollectionType result;
-    result.reserve(lhs.size());
-    std::transform(
-            lhs.begin(), lhs.end(),
-            rhs.begin(),
-            std::back_inserter(result),
-            [](const auto &a, const auto &b) {
-                return a * b;
-            });
-    return result;
-}
-
-long solve_task(const std::string &text, std::string pattern, size_t k) {
+size_t solve_task(const std::string &text, std::string pattern, size_t k) {
+    if (text.size() < pattern.size()) {
+        return 0;
+    }
+    if (text.size() == pattern.size())
+    {
+        return static_cast<long>(text == pattern);
+    }
     size_t pattern_length = pattern.size();
 
     // С помощью fft мы умеем вычислять свёртку.
@@ -500,6 +493,25 @@ long solve_task(const std::string &text, std::string pattern, size_t k) {
     pattern.resize(text.size());
 
     // Будем отдельно подсчитывать совпадения для разных букв.
+    // Сначала найдём, в каких позициях встречается каждая из букв
+    std::queue<int64_t> indexes_a, indexes_c, indexes_g, indexes_t;
+    for (size_t i = 0; i < text.size(); ++i) {
+        if (text[i] == 'A') {
+            indexes_a.push(i);
+        }
+        if (text[i] == 'C') {
+            indexes_c.push(i);
+        }
+        if (text[i] == 'G') {
+            indexes_g.push(i);
+        }
+        if (text[i] == 'T') {
+            indexes_t.push(i);
+        }
+    }
+    // Теперь создадим массивы с отсчётами сигналов, соответствующих каждой из букв.
+    // В позициях, в которых встречаются буквы, а также на k позиций влево и вправо
+    // поставим значения 1.0, а в остальных местах 0.0.
     std::vector<double>
             text_a(text.size(), 0.0),
             text_c(text.size(), 0.0),
@@ -508,57 +520,61 @@ long solve_task(const std::string &text, std::string pattern, size_t k) {
     std::vector<double>
             pattern_a(pattern.size(), 0.0),
             pattern_c(pattern.size(), 0.0),
-            pattern_g(pattern.size(),0.0),
+            pattern_g(pattern.size(), 0.0),
             pattern_t(pattern.size(), 0.0);
-    for (size_t i = 0; i < text.size(); ++i) {
-        if(text[i] == 'A') {
+    for (int64_t i = 0; i < text.size(); ++i) {
+        while (!indexes_a.empty() && (i>indexes_a.front() + k))
+        {
+            indexes_a.pop();
+        }
+        while (!indexes_c.empty() && (i>indexes_c.front() + k))
+        {
+            indexes_c.pop();
+        }
+        while (!indexes_g.empty() && (i>indexes_g.front() + k))
+        {
+            indexes_g.pop();
+        }
+        while (!indexes_t.empty() && (i>indexes_t.front() + k))
+        {
+            indexes_t.pop();
+        }
+        if (!indexes_a.empty() &&
+                (i>=(indexes_a.front() - k)) &&
+                (i<=(indexes_a.front() + k)))
+        {
             text_a[i] = 1.0;
-            if (i!=0){
-                text_a[i - 1] = 1.0;
-            }
-            if (i!=text_a.size()-1){
-                text_a[i + 1] = 1.0;
-            }
         }
-        if(text[i] == 'C') {
+        if (!indexes_c.empty() &&
+                (i>=(indexes_c.front() - k)) &&
+                (i<=(indexes_c.front() + k)))
+        {
             text_c[i] = 1.0;
-            if (i!=0){
-                text_c[i - 1] = 1.0;
-            }
-            if (i!=text_c.size()-1){
-                text_c[i + 1] = 1.0;
-            }
         }
-        if(text[i] == 'G') {
+        if (!indexes_g.empty() &&
+                (i>=(indexes_g.front() - k)) &&
+                (i<=(indexes_g.front() + k)))
+        {
             text_g[i] = 1.0;
-            if (i!=0){
-                text_g[i - 1] = 1.0;
-            }
-            if (i!=text_g.size()-1){
-                text_g[i + 1] = 1.0;
-            }
         }
-        if(text[i] == 'T') {
+        if (!indexes_t.empty() &&
+                (i>=(indexes_t.front() - k)) &&
+                (i<=(indexes_t.front() + k)))
+        {
             text_t[i] = 1.0;
-            if (i!=0){
-                text_t[i - 1] = 1.0;
-            }
-            if (i!=text_t.size()-1){
-                text_t[i + 1] = 1.0;
-            }
         }
     }
     for (size_t i = 0; i < pattern.size(); ++i) {
-        if(pattern[i] == 'A') {
+        if (pattern[i] == 'A') {
             pattern_a[i] = 1.0;
         }
-        if(pattern[i] == 'C') {
+        if (pattern[i] == 'C') {
             pattern_c[i] = 1.0;
         }
-        if(pattern[i] == 'G') {
+        if (pattern[i] == 'G') {
             pattern_g[i] = 1.0;
         }
-        if(pattern[i] == 'T') {
+        if (pattern[i] == 'T') {
             pattern_t[i] = 1.0;
         }
     }
@@ -569,34 +585,31 @@ long solve_task(const std::string &text, std::string pattern, size_t k) {
     auto[spectrum_pattern_a, spectrum_pattern_c] = fft::double_transfrom(pattern_a, pattern_c);
     auto[spectrum_pattern_g, spectrum_pattern_t] = fft::double_transfrom(pattern_g, pattern_t);
 
-    // Найдём спектры свёрток
-    auto corr_a_spectrum = piecemeal_multiplication(spectrum_text_a, spectrum_pattern_a);
-    auto corr_c_spectrum = piecemeal_multiplication(spectrum_text_c, spectrum_pattern_c);
-    auto corr_g_spectrum = piecemeal_multiplication(spectrum_text_g, spectrum_pattern_g);
-    auto corr_t_spectrum = piecemeal_multiplication(spectrum_text_t, spectrum_pattern_t);
-
     // Просуммируем спектры свёрток
     std::vector<std::complex<double>> sum_spectrums;
-    for (size_t i = 0; i < corr_a_spectrum.size(); ++i) {
-        sum_spectrums.push_back(corr_a_spectrum[i] + corr_c_spectrum[i] + corr_g_spectrum[i] + corr_t_spectrum[i]);
+    sum_spectrums.reserve(spectrum_text_a.size());
+    for (size_t i = 0; i < spectrum_text_a.size(); ++i) {
+        sum_spectrums.push_back(
+                spectrum_text_a[i] * spectrum_pattern_a[i] +
+                        spectrum_text_c[i] * spectrum_pattern_c[i] +
+                        spectrum_text_g[i] * spectrum_pattern_g[i] +
+                        spectrum_text_t[i] * spectrum_pattern_t[i]);
     }
 
     // Найдём сумму свёрток, произведя обратное преобразование
     auto corr_sum_samples = fft::transfrom(sum_spectrums, true);
-    std::vector<int64_t> corr_sum;
-    corr_sum.reserve(corr_sum_samples.size());
-    for (const auto &sample: corr_sum_samples) {
-        corr_sum.emplace_back(std::llround(sample.real()));
-    }
 
-    return std::count(corr_sum.begin(), corr_sum.end(), pattern_length);
+    auto count = std::count_if(corr_sum_samples.begin(), corr_sum_samples.end(),
+                         [pattern_length](const auto &elem) { return std::llround(elem.real()) == pattern_length; });
+    assert(count >= 0);
+    return count;
 }
 
 // Начало тестов
 
 void test_from_task() {
     auto count = solve_task("AGCAATTCAT", "ACAT", 1);
-    assert(true);
+    assert(count == 3);
 }
 
 
@@ -607,9 +620,6 @@ void run_all_tests() {
 // Конец тестов
 
 int main(int argc, char *argv[]) {
-    run_all_tests();
-    return 0;
-
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
     std::cout.tie(nullptr);
@@ -623,7 +633,12 @@ int main(int argc, char *argv[]) {
     }
 
     // Решение задачи
-
+    size_t length_text{0}, length_pattern{0}, k{0};
+    std::cin >> length_text >> length_pattern >> k;
+    std::string text, pattern;
+    std::cin >> text >> pattern;
+    auto count = solve_task(text, pattern, k);
+    std::cout << count;
 
     return 0;
 }
