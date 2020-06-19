@@ -7,9 +7,9 @@
 				ExternalProject_Add(googletest
 					GIT_REPOSITORY https://github.com/google/googletest.git
 					GIT_TAG master
-					DOWNLOAD_DIR "C:/Users/User/CLionProjects/MadeAlgorithmsHomework2/cmake-build-debug/googletest-download"
-					SOURCE_DIR "C:/Users/User/CLionProjects/MadeAlgorithmsHomework2/cmake-build-debug/googletest-src"
-					BINARY_DIR "C:/Users/User/CLionProjects/MadeAlgorithmsHomework2/cmake-build-debug/googletest-build"
+					DOWNLOAD_DIR "C:/Users/User/CLionProjects/MadeAlgorithmsHomework2/out/build/x64-Debug (по умолчанию)/googletest-download"
+					SOURCE_DIR "C:/Users/User/CLionProjects/MadeAlgorithmsHomework2/out/build/x64-Debug (по умолчанию)/googletest-src"
+					BINARY_DIR "C:/Users/User/CLionProjects/MadeAlgorithmsHomework2/out/build/x64-Debug (по умолчанию)/googletest-build"
 					CONFIGURE_COMMAND ""
 					BUILD_COMMAND ""
 					INSTALL_COMMAND ""
