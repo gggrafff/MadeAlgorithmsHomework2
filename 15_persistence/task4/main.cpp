@@ -59,7 +59,7 @@
 #include <vector>
 #include <algorithm>
 #include <cassert>
-#include <cmath>
+#include <functional>
 #include <math.h>
 #include <array>
 #include <utility>
@@ -98,7 +98,7 @@ public:
     // SequenceGenerator(const SequenceGenerator &) = default;
     // SequenceGenerator(SequenceGenerator &&) = default;
 
-    SequenceGenerator &operator=(const SequenceGenerator & other){
+    SequenceGenerator &operator=(const SequenceGenerator &other) {
         if (this != &other) { // self-assignment check expected
             module_ = other.module_;
             x_ = other.x_;
@@ -214,7 +214,8 @@ public:
         }
 
         sort(compressed_coordinates_.begin(), compressed_coordinates_.end());
-        compressed_coordinates_.erase(unique(compressed_coordinates_.begin(), compressed_coordinates_.end()), compressed_coordinates_.end());
+        compressed_coordinates_.erase(unique(compressed_coordinates_.begin(), compressed_coordinates_.end()),
+                                      compressed_coordinates_.end());
     }
 
     explicit CoordinatesCompressor(std::vector<T> coordinates, bool sorted = false) : compressed_coordinates_(
@@ -227,8 +228,11 @@ public:
     }
 
     CoordinatesCompressor(const CoordinatesCompressor &) = delete;
+
     CoordinatesCompressor(CoordinatesCompressor &&) = delete;
-    CoordinatesCompressor &operator=(const CoordinatesCompressor & other) = delete;
+
+    CoordinatesCompressor &operator=(const CoordinatesCompressor &other) = delete;
+
     CoordinatesCompressor &operator=(CoordinatesCompressor &&) = delete;
 
     [[nodiscard]] size_t compress(T coordinate) const {
@@ -249,118 +253,183 @@ private:
     std::vector<T> compressed_coordinates_;
 };
 
-/**
- * @brief Пространство имён, объединяющее персистентные структуры данных.
- */
-namespace persistence {
-    template<typename T>
-    class SegmentCopier {
-    public:
-        explicit SegmentCopier(SequenceGenerator<int64_t, int64_t> generator, size_t N): compressor_(generator,N) {
-            size_ = round_pow2(compressor_.max_compressed() + 1);
+class MemoryManager;
 
-            nodes_.reserve(2 * size_ - 1);
-            for (size_t i = 0; i < size_ - 1; ++i) {
-                nodes_.push_back({i * 2 + 1, i * 2 + 2, 0});
-            }
-            nodes_.push_back({0, 0, compressor_.compress(generator.get_current())});
-            for (size_t i = 1; i < size_; ++i) {
-                nodes_.push_back({0, 0, compressor_.compress(generator.next())});
-            }
-            for (int64_t i = size_ - 2; i >=0; --i) {
-                nodes_.[i].sum = nodes_[i*2+1].sum + nodes_[i*2+2].sum;
-            }
+template<typename T>
+class TreapImplicit {
+public:
+    TreapImplicit() = default;
+    virtual ~TreapImplicit() = default;
 
-            roots_.push_back(0);
+    virtual void push_back(const T &value) {
+        insert(size(), value);
+    }
+
+    virtual void push_front(const T &value) {
+        insert(0, value);
+    }
+
+    virtual void insert(const size_t position, const T &value) {
+        if (position == 0){
+            nodes_.push_back({value, value, generate_priority(), 1, 0, 0});
+            root_ = merge(nodes_.size() - 1, root_);
+        } else if (position == size()){
+            nodes_.push_back({value, value, generate_priority(), 1, 0, 0});
+            root_ = merge(root_, nodes_.size() - 1);
+        } else {
+            auto [t1, t2] = split(root_, position);
+            nodes_.push_back({value, value, generate_priority(), 1, 0, 0});
+            root_ = merge(t1, nodes_.size() - 1);
+            root_ = merge(root_, t2);
         }
+    }
 
-        ~SegmentCopier() = default;
+    virtual void erase(size_t position) {
+        erase(root_, position);
+    }
 
-        SegmentCopier(const SegmentCopier &) = delete;
-        SegmentCopier(SegmentCopier &&) = delete;
-        SegmentCopier &operator=(const SegmentCopier & other) = delete;
-        SegmentCopier&operator=(SegmentCopier &&) = delete;
-
-        void print(const size_t l, const size_t r) const {
-            assert(l < size_);
-            assert(r < size_);
-            assert(l <= r);
-            assert(l >= 0);
-            std::stack<std::tuple<size_t, size_t, size_t>> dfs;
-            dfs.push({roots_.back(), 0, size_ - 1});
-            while (!dfs.empty()) {
-                auto [node_idx, from, to] = dfs.top();
-                dfs.pop();
-                if (nodes_[node_idx].left == 0) {
-                    std::cout << nodes_[node_idx].sum << " ";
-                } else {
-                    auto from_left = from;
-                    auto to_left = from_left + (to - from) / 2;
-                    auto from_right = to_left;
-                    auto to_right = to;
-                    if (from_right <= r) {
-                        dfs.push({nodes_[node_idx].right, from_right, to_right});
-                    }
-                    if (to_left >= l) {
-                        dfs.push({nodes_[node_idx].left, from_left, to_left});
-                    }
-                }
-            }
-            std::cout << "\n";
+    virtual size_t size() const {
+        auto size = nodes_.size();
+        if (size > 0) {
+            assert(nodes_[root_].count == size);
         }
+        return size;
+    }
 
-        void copy(const size_t begin_from, const size_t begin_to, const size_t length) {
-            auto from_l = begin_from;
-            auto from_r = begin_from + length - 1;
-            auto to_l = begin_to;
-            auto to_r = begin_to + length - 1;
+    friend MemoryManager;
+protected:
+    using NodePointer = size_t;
 
-            nodes_.push_back(nodes_[roots_.back()]);
-            roots_.push_back(nodes_.size() - 1);
+    virtual uint64_t generate_priority() {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_int_distribution<uint64_t> priority_generator;
 
-            std::stack<std::tuple<size_t, size_t, size_t>> dfs_old;
-            dfs.push({roots_[roots_.size() - 2], 0, size_ - 1});
-            while (!dfs.empty()) {
-                auto [old_node_idx, new_node_idx, old_from, old_to, new_from, new_to] = dfs.top();
-                dfs.pop();
+        return priority_generator(gen);
+    }
 
-                auto old_length = old_to - old_from + 1;
-                auto new_length = new_to - old_to + 1;
+    virtual void erase(const NodePointer root_idx, const size_t target_element_idx) {
+        auto &root = nodes_[root_idx];
+        auto &left = nodes_[root.left];
 
-                if ()
-            }
+        if (left.count == target_element_idx) {
+            auto subtree_root_idx = merge(nodes_[root_idx].left, nodes_[root_idx].right);
+            nodes_[root_idx] = nodes_[subtree_root_idx];
+            nodes_.erase(nodes_.begin() + subtree_root_idx);
+        } else if (left.count > element_idx) {
+            erase(root.left, target_element_idx);
+            update(root_idx);
+        } else {
+            erase(root.right, target_element_idx);
+            update(root_idx);
         }
+    }
 
-    private:
+    virtual NodePointer find(const NodePointer root_idx, const size_t target_element_idx) const {
+        auto &root = nodes_[root_idx];
+        auto &left = nodes_[root.left];
 
-        struct Node {
-            size_t left{0};
-            size_t right{0};
-            size_t sum{0};
-        };
-
-        /**
-         * @brief Определяет наименьшую степень двойки, не меньшую заданного числа.
-         * @details Используется знание о представлении чисел с плавающей точкой в памяти.
-         * @details Подробнее: https://ru.wikipedia.org/wiki/Число_двойной_точности
-         * @param number Число, которое нужно округлить вверх до стпени двойки.
-         * @return Число, равное степени двойки. Минимальное, но не меньше, чем number.
-         */
-        static size_t round_pow2(size_t number) {
-            // если убрать "- 1", то "не меньше" в описании нужно заменить на "больше"
-            double x = static_cast<double>(number - 1);
-            auto answer = reinterpret_cast<unsigned int *>(&x);
-            ++answer;
-            return static_cast<size_t>(1) << (((*answer & 0x7FF00000) >> 20) - 1022);
+        if (left.count == target_element_idx) {
+            return root_idx;
+        } else if (left.count > element_idx) {
+            return find(root.left, target_element_idx);
+        } else {
+            return find(root.right, target_element_idx);
         }
+    }
 
-        std::vector<size_t> roots_;
-        std::vector<Node> nodes_;
-        size_t size_{0};
-        CoordinatesCompressor<T> compressor_;
+    virtual std::tuple<NodePointer, NodePointer> split(NodePointer root_idx, size_t k) {
+        if (root_idx == 0) { return {0, 0}; }
+
+        auto &root = nodes_[root_idx];
+        auto &left = nodes_[root.left];
+
+        if (left.count >= k) {
+            auto[t1, t2] = split(root.left, k);
+            root.left = t2;
+            update(root_idx);
+            return {t1, root_idx};
+        } else {
+            auto[t1, t2] = split(root.right, k - left.count - 1);
+            root.right = t1;
+            update(root_idx);
+            return {root_idx, t2};
+        }
+    }
+
+    virtual NodePointer merge(NodePointer root1_idx, NodePointer root2_idx) {
+        if (root2_idx == 0) { return root1_idx; }
+        if (root1_idx == 0) { return root2_idx; }
+
+        auto &root1 = nodes_[root1_idx];
+        auto &root2 = nodes_[root2_idx];
+        if (root1.priority > root2.priority) {
+            root1.right = merge(root1.right, root2_idx);
+            return root1_idx;
+        } else {
+            root2.left = merge(root1_idx, root2.left);
+            return root2_idx;
+        }
+    }
+
+    virtual void update(NodePointer t) {
+        nodes_[t].count = 1 + nodes_[nodes_[t].left].count + nodes_[nodes_[t].right].count;
+        nodes_[t].query_result = query_operation(nodes_[nodes_[t].left].query_result, nodes_[nodes_[t].right].query_result);
+    }
+
+    struct Node {
+        T value;
+        T query_result;
+        uint64_t priority;
+        uint64_t count;
+        NodePointer left;
+        NodePointer right;
     };
-}
+private:
+    std::vector<Node> nodes_;
+    NodePointer root_{0};
+    std::function<T(const T &lhs, const T &rhs)> query_operation = [](auto& lhs, auto& rhs){return lhs+rhs;};
+};
 
+/*template<typename T>
+class TreapImplicitCompressed: public TreapImplicit<T> {
+public:
+    template<typename Generator>
+    explicit TreapImplicitCompressed(Generator generator, size_t N): compressor_(generator, N) {
+        if (N > 0) {
+            push_back(compressor_.compress(generator.get_current()));
+            for(size_t i=1;i<N;++i){
+                push_back(compressor_.compress(generator.next()));
+            }
+        }
+    }
+
+    void insert(const size_t position, const T &value) override {
+        TreapImplicit<T>::insert(position, compressor_.compress(value));
+    }
+
+protected:
+    void update(typename TreapImplicit<T>::NodePointer t) override{
+        nodes_[t].count = 1 + nodes_[nodes_[t].left].count + nodes_[nodes_[t].right].count;
+        nodes_[t].query_result = query_operation(
+                compressor_.decompress(nodes_[nodes_[t].left].query_result),
+                compressor_.decompress(nodes_[nodes_[t].right].query_result)
+                );
+    }
+
+    CoordinatesCompressor<T> compressor_;
+};
+*/
+
+class MemoryManager{
+public:
+    MemoryManager(SequenceGenerator<int64_t,int64_t> array_generator, size_t N){
+        assert(N>0);
+        memory_.push_back(array_generator.get_current());
+    }
+private:
+    TreapImplicit<uint32_t> memory_;
+};
 
 
 // Начало тестов

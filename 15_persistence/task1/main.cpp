@@ -42,7 +42,7 @@
  * https://ejudge.lksh.ru/archive/2015/08/Aprime/lection/main.pdf
  */
 
-#include <random>
+#include <tuple>
 #include <iostream>
 #include <vector>
 #include <algorithm>
