@@ -50,8 +50,22 @@
  */
 
 /*
- * Подробнее о :
- *
+ * Подробнее о декартовом дереве:
+ * https://neerc.ifmo.ru/wiki/index.php?title=Декартово_дерево
+ * http://e-maxx.ru/algo/treap
+ * Подробнее о декартовом дереве с неявной индексацией:
+ * https://neerc.ifmo.ru/wiki/index.php?title=Декартово_дерево_по_неявному_ключу
+ * https://habr.com/ru/post/102364/
+ * https://gist.github.com/sfalexrog/5915c176ffb0dff13a1b7152da6918c1
+ * Подробнее о персистентном декартовом дереве с неявной индексацией:
+ * https://au.cdkrot.me/get/spbau-2020-va/algorithms
+ * https://codeforces.com/blog/entry/19921
+ * https://codeforces.com/contest/571/submission/12672283
+ * https://habr.com/ru/post/240519/
+ */
+
+/*
+ * Задача не решена!!! Нужно дебажить.
  */
 
 #include <random>
